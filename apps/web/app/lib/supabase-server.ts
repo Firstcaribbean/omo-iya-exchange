@@ -13,7 +13,10 @@ export function supabaseConfigured() {
 }
 
 function url() {
-  return process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "") || "";
+  return (process.env.NEXT_PUBLIC_SUPABASE_URL || "")
+    .trim()
+    .replace(/\/rest\/v1\/?$/, "")
+    .replace(/\/$/, "");
 }
 
 function serviceKey() {
@@ -297,6 +300,10 @@ export function ok<T>(data: T, message = "OK") {
 }
 
 export function fail(error: unknown, status = 400) {
-  const message = error instanceof Error ? error.message : "Request failed.";
+  const rawMessage = error instanceof Error ? error.message : "Request failed.";
+  const message =
+    rawMessage === "fetch failed"
+      ? "Could not reach Supabase. Check NEXT_PUBLIC_SUPABASE_URL in Vercel and make sure it is only https://PROJECT_REF.supabase.co"
+      : rawMessage;
   return Response.json({ success: false, message }, { status });
 }
