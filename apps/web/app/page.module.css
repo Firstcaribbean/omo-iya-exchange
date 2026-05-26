@@ -323,6 +323,7 @@
 
 .productImage {
   position: relative;
+  display: block;
   aspect-ratio: 4 / 3;
   overflow: hidden;
   background: #d8dee9;
@@ -590,7 +591,8 @@
   min-height: 52px;
 }
 
-.checkoutButton:disabled {
+.checkoutButton:disabled,
+.disabledLink {
   color: #98a2b3;
   cursor: not-allowed;
   background: #eef2f6;
@@ -650,6 +652,19 @@
 .miniStats strong {
   color: var(--blue);
   font-size: 22px;
+}
+
+.panelLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  margin-top: 18px;
+  padding: 0 14px;
+  color: #ffffff;
+  background: var(--blue);
+  border-radius: 8px;
+  font-weight: 800;
 }
 
 .footer {

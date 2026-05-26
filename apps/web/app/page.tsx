@@ -1,116 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
+import { categories, formatNaira, products, type Product } from "./market-data";
 import styles from "./page.module.css";
-
-type Product = {
-  id: string;
-  name: string;
-  category: string;
-  price: number;
-  oldPrice?: number;
-  rating: number;
-  sales: number;
-  image: string;
-  badge: string;
-  description: string;
-  delivery: string;
-};
-
-const products: Product[] = [
-  {
-    id: "brand-kit",
-    name: "Business Brand Starter Kit",
-    category: "Design",
-    price: 18500,
-    oldPrice: 24000,
-    rating: 4.9,
-    sales: 318,
-    image:
-      "https://images.unsplash.com/photo-1611224923853-80b023f02d71?auto=format&fit=crop&w=900&q=80",
-    badge: "Best seller",
-    description:
-      "Logo files, social templates, invoice sheets, and launch graphics for small Nigerian businesses.",
-    delivery: "Instant download",
-  },
-  {
-    id: "wa-commerce",
-    name: "WhatsApp Commerce Playbook",
-    category: "Business",
-    price: 9500,
-    rating: 4.8,
-    sales: 204,
-    image:
-      "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=900&q=80",
-    badge: "New",
-    description:
-      "Scripts, offer templates, customer follow-up flows, and pricing sheets for chat-based sales.",
-    delivery: "PDF + editable docs",
-  },
-  {
-    id: "excel-finance",
-    name: "SME Finance Dashboard",
-    category: "Templates",
-    price: 14500,
-    oldPrice: 18000,
-    rating: 4.7,
-    sales: 156,
-    image:
-      "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=900&q=80",
-    badge: "Verified",
-    description:
-      "Track income, expenses, customers, debtors, stock, and monthly profit in one spreadsheet.",
-    delivery: "Excel + Google Sheets",
-  },
-  {
-    id: "ad-pack",
-    name: "Meta Ads Creative Pack",
-    category: "Marketing",
-    price: 22000,
-    rating: 4.9,
-    sales: 91,
-    image:
-      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=900&q=80",
-    badge: "Premium",
-    description:
-      "Ready-to-edit ad concepts, captions, campaign planner, and performance reporting templates.",
-    delivery: "Canva + Docs",
-  },
-  {
-    id: "ebook-launch",
-    name: "Ebook Launch System",
-    category: "Education",
-    price: 12000,
-    rating: 4.6,
-    sales: 127,
-    image:
-      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80",
-    badge: "Creator pick",
-    description:
-      "A complete launch workflow for writing, packaging, pricing, and selling a digital guide.",
-    delivery: "Workbook + templates",
-  },
-  {
-    id: "support-stack",
-    name: "Customer Support Response Kit",
-    category: "Operations",
-    price: 7800,
-    rating: 4.7,
-    sales: 83,
-    image:
-      "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=900&q=80",
-    badge: "Fast setup",
-    description:
-      "Message macros, refund scripts, ticket categories, and escalation rules for lean teams.",
-    delivery: "Docs + CSV import",
-  },
-];
-
-const categories = ["All", ...Array.from(new Set(products.map((p) => p.category)))];
-
-function formatNaira(amount: number) {
-  return `NGN ${amount.toLocaleString("en-NG")}`;
-}
 
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState("All");
@@ -190,8 +83,8 @@ export default function Home() {
         <nav className={styles.navLinks} aria-label="Main navigation">
           <a href="#marketplace">Marketplace</a>
           <a href="#checkout">Checkout</a>
-          <a href="#dashboard">Dashboard</a>
-          <a href="#admin">Admin</a>
+          <Link href="/dashboard">Dashboard</Link>
+          <Link href="/admin">Admin</Link>
         </nav>
 
         <a className={styles.cartPill} href="#checkout" aria-label="Open cart">
@@ -276,16 +169,18 @@ export default function Home() {
         <div className={styles.productGrid}>
           {filteredProducts.map((product) => (
             <article className={styles.productCard} key={product.id}>
-              <div className={styles.productImage}>
+              <Link className={styles.productImage} href={`/products/${product.slug}`}>
                 <img src={product.image} alt={product.name} />
                 <span>{product.badge}</span>
-              </div>
+              </Link>
               <div className={styles.productBody}>
                 <div className={styles.productMeta}>
                   <span>{product.category}</span>
                   <span>{product.rating.toFixed(1)} rating</span>
                 </div>
-                <h3>{product.name}</h3>
+                <h3>
+                  <Link href={`/products/${product.slug}`}>{product.name}</Link>
+                </h3>
                 <p>{product.description}</p>
                 <div className={styles.delivery}>{product.delivery}</div>
                 <div className={styles.productFooter}>
@@ -367,9 +262,15 @@ export default function Home() {
             <span>Subtotal</span>
             <strong>{formatNaira(subtotal)}</strong>
           </div>
-          <button className={styles.checkoutButton} disabled={cartCount === 0}>
+          <Link
+            className={`${styles.checkoutButton} ${
+              cartCount === 0 ? styles.disabledLink : ""
+            }`}
+            href={cartCount === 0 ? "#checkout" : "/checkout"}
+            aria-disabled={cartCount === 0}
+          >
             Continue to Paystack
-          </button>
+          </Link>
           <p className={styles.checkoutNote}>
             Payments will run in Paystack test mode until live keys are added.
           </p>
@@ -388,6 +289,9 @@ export default function Home() {
             <span>Wallet balance</span>
             <strong>NGN 0</strong>
           </div>
+          <Link className={styles.panelLink} href="/dashboard">
+            Open dashboard
+          </Link>
         </article>
         <article id="admin">
           <span className={styles.panelLabel}>Admin operations</span>
@@ -400,6 +304,9 @@ export default function Home() {
             <span>Today revenue</span>
             <strong>NGN 0</strong>
           </div>
+          <Link className={styles.panelLink} href="/admin">
+            Open admin
+          </Link>
         </article>
       </section>
 
@@ -411,7 +318,7 @@ export default function Home() {
         <nav aria-label="Footer links">
           <a href="#marketplace">Marketplace</a>
           <a href="#checkout">Checkout</a>
-          <a href="#dashboard">Dashboard</a>
+          <Link href="/dashboard">Dashboard</Link>
         </nav>
       </footer>
     </main>
