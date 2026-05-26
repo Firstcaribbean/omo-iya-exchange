@@ -326,6 +326,12 @@ export default function AdminPage() {
     persist(next);
   }
 
+  function updateTicketStatus(ticketId: string, status: AppState["tickets"][number]["status"]) {
+    const next = loadState();
+    next.tickets = next.tickets.map((ticket) => ticket.id === ticketId ? { ...ticket, status } : ticket);
+    persist(next);
+  }
+
   if (!state) return null;
 
   return (
@@ -445,6 +451,33 @@ export default function AdminPage() {
             <table className={styles.table}>
               <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Action</th></tr></thead>
               <tbody>{state.users.map((item) => <tr key={item.id}><td>{item.email}</td><td>{item.role}</td><td>{item.status}</td><td><button onClick={() => updateUserStatus(item.id)} type="button">{item.status === "ACTIVE" ? "Suspend" : "Reactivate"}</button></td></tr>)}</tbody>
+            </table>
+          </section>
+
+          <section className={styles.panel}>
+            <p className={styles.eyebrow}>Live chat and support</p>
+            <table className={styles.table}>
+              <thead><tr><th>Ticket</th><th>Subject</th><th>Message</th><th>Status</th></tr></thead>
+              <tbody>
+                {state.tickets.length === 0 ? (
+                  <tr><td colSpan={4}>No support messages yet.</td></tr>
+                ) : (
+                  state.tickets.map((ticket) => (
+                    <tr key={ticket.id}>
+                      <td>{ticket.id}</td>
+                      <td>{ticket.subject}</td>
+                      <td>{ticket.message}</td>
+                      <td>
+                        <select value={ticket.status} onChange={(event) => updateTicketStatus(ticket.id, event.target.value as AppState["tickets"][number]["status"])}>
+                          <option>OPEN</option>
+                          <option>IN_PROGRESS</option>
+                          <option>RESOLVED</option>
+                        </select>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
             </table>
           </section>
         </>
