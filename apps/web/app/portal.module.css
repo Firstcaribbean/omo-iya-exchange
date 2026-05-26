@@ -7,6 +7,132 @@
   font-family: var(--font-geist-sans), Arial, sans-serif;
 }
 
+.adminShell {
+  padding: 0;
+  background: #e8ebf0;
+}
+
+.adminFrame {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  width: min(1220px, calc(100% - 48px));
+  min-height: calc(100vh - 48px);
+  margin: 24px auto;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid rgba(216, 222, 233, 0.9);
+  border-radius: 14px;
+  box-shadow: 0 28px 80px rgba(16, 24, 40, 0.14);
+}
+
+.adminSidebar {
+  padding: 24px 16px;
+  background: #f6f7f9;
+  border-right: 1px solid var(--line);
+}
+
+.adminBrand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.adminBrand strong {
+  display: block;
+  color: var(--blue-strong);
+  font-size: 15px;
+}
+
+.adminBrand span:not(.brandMark) {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.sidebarLabel {
+  margin: 22px 0 8px;
+  color: #98a2b3;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.adminMenu {
+  display: grid;
+  gap: 6px;
+}
+
+.adminMenu a,
+.adminMenu button {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 12px;
+  color: #475467;
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 750;
+  text-align: left;
+}
+
+.adminMenu a:hover,
+.adminMenu button:hover,
+.adminMenu .activeTab {
+  color: var(--blue-strong);
+  background: #e9edf3;
+}
+
+.adminWorkspace {
+  min-width: 0;
+  padding: 0 30px 34px;
+  background: #ffffff;
+}
+
+.workspaceTopbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 82px;
+  margin: 0 -30px 30px;
+  padding: 0 30px;
+  border-bottom: 1px solid var(--line);
+}
+
+.workspaceTopbar h1 {
+  color: var(--blue-strong);
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.workspaceTopbar p {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.workspaceActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.workspaceActions a,
+.workspaceActions span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 12px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+
 .topbar {
   display: flex;
   align-items: center;
@@ -113,20 +239,26 @@
 
 .adminHero,
 .metricGrid {
-  width: min(1180px, 100%);
+  width: 100%;
   margin: 0 auto 18px;
 }
 
 .adminHero {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(360px, 0.8fr);
-  gap: 24px;
+  grid-template-columns: 1fr;
+  gap: 8px;
   align-items: center;
-  padding: 26px;
-  background: #ffffff;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  box-shadow: 0 18px 50px rgba(16, 24, 40, 0.08);
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.adminHero h2 {
+  color: var(--blue-strong);
+  font-size: 24px;
+  line-height: 1.2;
 }
 
 .quickNav {
@@ -157,16 +289,16 @@
 .metricGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  gap: 18px;
 }
 
 .metricCard {
-  min-height: 108px;
+  min-height: 86px;
   padding: 18px;
-  background: #ffffff;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  box-shadow: 0 18px 50px rgba(16, 24, 40, 0.06);
+  background: #f7f8fb;
+  border: 1px solid #edf0f5;
+  border-radius: 12px;
+  box-shadow: none;
 }
 
 .metricCard span {
@@ -178,9 +310,98 @@
 
 .metricCard strong {
   display: block;
-  margin-top: 12px;
+  margin-top: 8px;
+  color: var(--blue-strong);
+  font-size: 24px;
+}
+
+.reportGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.8fr);
+  gap: 18px;
+  width: 100%;
+  margin: 18px 0;
+}
+
+.reportPanel {
+  padding: 22px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.panelHeader h2 {
+  margin-top: 6px;
+  color: var(--blue-strong);
+  font-size: 32px;
+  line-height: 1;
+}
+
+.panelHeader a {
   color: var(--blue);
-  font-size: 26px;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.chartBox {
+  height: 220px;
+  margin-top: 20px;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, transparent 0 15%, rgba(216, 222, 233, 0.7) 15% 15.4%, transparent 15.4% 30%, rgba(216, 222, 233, 0.7) 30% 30.4%, transparent 30.4% 45%, rgba(216, 222, 233, 0.7) 45% 45.4%, transparent 45.4% 60%, rgba(216, 222, 233, 0.7) 60% 60.4%, transparent 60.4% 75%, rgba(216, 222, 233, 0.7) 75% 75.4%, transparent 75.4%),
+    linear-gradient(180deg, #ffffff, #f7f9fc);
+  border-radius: 12px;
+}
+
+.chartBox svg {
+  width: 100%;
+  height: 100%;
+}
+
+.chartBox path {
+  fill: none;
+  stroke: #2f80a7;
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.chartBox path + path {
+  stroke: #d9a441;
+  stroke-width: 3;
+}
+
+.compactList {
+  display: grid;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.compactRow {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 10px;
+}
+
+.compactRow span,
+.compactRow small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.compactRow strong {
+  color: var(--blue-strong);
+  font-size: 13px;
 }
 
 .card,
@@ -188,8 +409,8 @@
 .sidebar {
   background: #ffffff;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  box-shadow: 0 18px 50px rgba(16, 24, 40, 0.08);
+  border-radius: 12px;
+  box-shadow: none;
 }
 
 .card,
@@ -370,8 +591,8 @@
   padding: 22px;
   background: #ffffff;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  box-shadow: 0 18px 50px rgba(16, 24, 40, 0.06);
+  border-radius: 12px;
+  box-shadow: none;
 }
 
 .adminTile strong {
@@ -565,12 +786,37 @@
 }
 
 @media (max-width: 900px) {
+  .adminFrame {
+    grid-template-columns: 1fr;
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .adminSidebar {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .adminWorkspace {
+    padding: 0 18px 24px;
+  }
+
+  .workspaceTopbar {
+    align-items: flex-start;
+    flex-direction: column;
+    margin: 0 -18px 24px;
+    padding: 18px;
+  }
+
   .heroGrid,
   .twoColumn,
   .dashboardGrid,
   .adminGrid,
   .adminHero,
   .metricGrid,
+  .reportGrid,
   .stats,
   .toolbar,
   .productRow {

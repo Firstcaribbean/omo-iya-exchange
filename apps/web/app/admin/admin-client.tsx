@@ -410,42 +410,41 @@ export function AdminDashboard({ view = "overview" }: { view?: AdminView }) {
   if (!state) return null;
 
   return (
-    <main className={styles.shell}>
-      <header className={styles.topbar}>
-        <Link className={styles.brand} href="/">
-          <span className={styles.brandMark}>OI</span>
-          <div>
-            <strong>{state.brand.name}</strong>
-            <span>Admin operations</span>
-          </div>
-        </Link>
-        <nav className={styles.nav}>
-          <Link href="/marketplace">Marketplace</Link>
-          <Link href="/dashboard">Customer view</Link>
-          <button className={styles.ghostButton} onClick={logout} type="button">Sign out</button>
-        </nav>
-      </header>
-
+    <main className={`${styles.shell} ${isAdmin ? styles.adminShell : ""}`}>
       {!isAdmin ? (
-        <section className={styles.card}>
-          <h1 className={styles.headline}>Admin login required.</h1>
-          <p className={styles.lead}>Sign in with an administrator account to manage services, inventory, orders, users, and brand settings.</p>
-          <Link className={styles.button} href="/login">Go to login</Link>
-        </section>
-      ) : (
         <>
-          <section className={styles.adminHero}>
-            <div>
-              <p className={styles.eyebrow}>Private admin dashboard</p>
-              <h1 className={styles.headline}>
-                {view === "overview" ? "Operate the marketplace." : adminTabs.find((tab) => tab.view === view)?.label}
-              </h1>
-              <p className={styles.lead}>
-                Manage public homepage copy, service inventory, country availability,
-                OTP fulfillment, customer accounts, and support conversations.
-              </p>
-            </div>
-            <div className={styles.quickNav} aria-label="Admin sections">
+          <header className={styles.topbar}>
+            <Link className={styles.brand} href="/">
+              <span className={styles.brandMark}>OI</span>
+              <div>
+                <strong>{state.brand.name}</strong>
+                <span>Private admin</span>
+              </div>
+            </Link>
+            <nav className={styles.nav}>
+              <Link href="/marketplace">Marketplace</Link>
+              <Link href="/dashboard">Customer view</Link>
+            </nav>
+          </header>
+          <section className={styles.card}>
+            <h1 className={styles.headline}>Admin login required.</h1>
+            <p className={styles.lead}>Sign in with an administrator account to manage services, inventory, orders, users, and brand settings.</p>
+            <Link className={styles.button} href="/login">Go to login</Link>
+          </section>
+        </>
+      ) : (
+        <div className={styles.adminFrame}>
+          <aside className={styles.adminSidebar}>
+            <Link className={styles.adminBrand} href="/admin">
+              <span className={styles.brandMark}>OI</span>
+              <div>
+                <strong>{state.brand.name}</strong>
+                <span>Admin console</span>
+              </div>
+            </Link>
+
+            <p className={styles.sidebarLabel}>Main menu</p>
+            <nav className={styles.adminMenu} aria-label="Admin menu">
               {adminTabs.map((tab) => (
                 <Link
                   aria-current={tab.view === view ? "page" : undefined}
@@ -453,9 +452,41 @@ export function AdminDashboard({ view = "overview" }: { view?: AdminView }) {
                   href={tab.href}
                   key={tab.href}
                 >
-                  {tab.label}
+                  <span>{tab.label}</span>
                 </Link>
               ))}
+            </nav>
+
+            <p className={styles.sidebarLabel}>Storefront</p>
+            <nav className={styles.adminMenu} aria-label="Storefront links">
+              <Link href="/marketplace">Marketplace</Link>
+              <Link href="/dashboard">Customer view</Link>
+              <button onClick={logout} type="button">Sign out</button>
+            </nav>
+          </aside>
+
+          <section className={styles.adminWorkspace}>
+            <header className={styles.workspaceTopbar}>
+              <div>
+                <h1>{view === "overview" ? `Good day, ${user.firstName || "Admin"}.` : adminTabs.find((tab) => tab.view === view)?.label}</h1>
+                <p>{view === "overview" ? "Here is what is happening with your marketplace today." : "Use this page to manage one part of the operation."}</p>
+              </div>
+              <div className={styles.workspaceActions}>
+                <span>{new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</span>
+                <Link href="/" target="_blank">View site</Link>
+              </div>
+            </header>
+
+          <section className={styles.adminHero}>
+            <div>
+              <p className={styles.eyebrow}>Private admin dashboard</p>
+              <h2>
+                {view === "overview" ? "Operate the marketplace." : adminTabs.find((tab) => tab.view === view)?.label}
+              </h2>
+              <p className={styles.lead}>
+                Manage public homepage copy, service inventory, country availability,
+                OTP fulfillment, customer accounts, and support conversations.
+              </p>
             </div>
           </section>
 
@@ -478,6 +509,45 @@ export function AdminDashboard({ view = "overview" }: { view?: AdminView }) {
                   <span>Low inventory</span>
                   <strong>{lowInventory}</strong>
                 </div>
+              </section>
+
+              <section className={styles.reportGrid}>
+                <div className={styles.reportPanel}>
+                  <div className={styles.panelHeader}>
+                    <div>
+                      <p className={styles.eyebrow}>Sales report</p>
+                      <h2>{formatNaira(totalRevenue)}</h2>
+                    </div>
+                    <span className={styles.statusPill}>Today</span>
+                  </div>
+                  <div className={styles.chartBox} aria-hidden="true">
+                    <svg viewBox="0 0 640 220" role="img">
+                      <path d="M20 158 C80 108 116 112 166 132 S260 176 320 128 420 68 500 92 580 126 620 82" />
+                      <path d="M20 128 C80 82 132 92 180 110 S260 142 320 150 414 132 462 114 548 152 620 134" />
+                    </svg>
+                  </div>
+                </div>
+
+                <aside className={styles.reportPanel}>
+                  <div className={styles.panelHeader}>
+                    <div>
+                      <p className={styles.eyebrow}>Last orders</p>
+                      <h2>Transactions</h2>
+                    </div>
+                    <Link href="/admin/orders">View all</Link>
+                  </div>
+                  <div className={styles.compactList}>
+                    {(state.orders.length ? state.orders.slice(0, 4) : [
+                      { id: "No orders yet", total: 0, status: "PENDING" as const, items: [], userId: "", createdAt: "" },
+                    ]).map((order) => (
+                      <div className={styles.compactRow} key={order.id}>
+                        <span>{order.id}</span>
+                        <strong>{formatNaira(order.total)}</strong>
+                        <small>{order.status}</small>
+                      </div>
+                    ))}
+                  </div>
+                </aside>
               </section>
 
               <section className={styles.adminGrid}>
@@ -678,7 +748,8 @@ export function AdminDashboard({ view = "overview" }: { view?: AdminView }) {
             <button className={styles.ghostButton} onClick={() => setState(resetState())} type="button">Reset local app data</button>
           </section>
           ) : null}
-        </>
+          </section>
+        </div>
       )}
     </main>
   );
