@@ -1,7 +1,49 @@
+"use client";
+
 import Link from "next/link";
+import { FormEvent, useEffect, useState } from "react";
+import { demoCredentials, loadState, saveState } from "../lib/store";
 import styles from "../portal.module.css";
 
 export default function LoginPage() {
+  const [email, setEmail] = useState(demoCredentials.customer.email);
+  const [password, setPassword] = useState(demoCredentials.customer.password);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    loadState();
+  }, []);
+
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const state = loadState();
+    const user = state.users.find(
+      (item) =>
+        item.email.toLowerCase() === email.toLowerCase() &&
+        item.password === password &&
+        item.status === "ACTIVE",
+    );
+
+    if (!user) {
+      setMessage("Invalid credentials or suspended account.");
+      return;
+    }
+
+    state.currentUserId = user.id;
+    saveState(state);
+    window.location.href = user.role === "ADMIN" ? "/admin" : "/dashboard";
+  }
+
+  function fillAdmin() {
+    setEmail(demoCredentials.admin.email);
+    setPassword(demoCredentials.admin.password);
+  }
+
+  function fillCustomer() {
+    setEmail(demoCredentials.customer.email);
+    setPassword(demoCredentials.customer.password);
+  }
+
   return (
     <main className={styles.shell}>
       <header className={styles.topbar}>
@@ -13,53 +55,68 @@ export default function LoginPage() {
           </div>
         </Link>
         <nav className={styles.nav}>
-          <Link href="/">Marketplace</Link>
+          <Link href="/marketplace">Marketplace</Link>
           <Link href="/register">Create account</Link>
         </nav>
       </header>
 
       <section className={styles.heroGrid}>
         <div className={styles.card}>
-          <p className={styles.eyebrow}>Customer access</p>
-          <h1 className={styles.headline}>Sign in to manage purchases.</h1>
+          <p className={styles.eyebrow}>Customer and admin access</p>
+          <h1 className={styles.headline}>Sign in to continue.</h1>
           <p className={styles.lead}>
-            Access your wallet, order history, support tickets, and secure
-            digital downloads.
+            Use the seeded credentials below, or create a new customer account.
           </p>
-          <form className={styles.form}>
+          <div className={styles.inlineActions}>
+            <button className={styles.ghostButton} onClick={fillCustomer} type="button">
+              Fill customer login
+            </button>
+            <button className={styles.ghostButton} onClick={fillAdmin} type="button">
+              Fill admin login
+            </button>
+          </div>
+          <form className={styles.form} onSubmit={submit}>
             <label>
               Email address
-              <input placeholder="you@example.com" type="email" />
+              <input
+                onChange={(event) => setEmail(event.target.value)}
+                type="email"
+                value={email}
+              />
             </label>
             <label>
               Password
-              <input placeholder="Enter your password" type="password" />
+              <input
+                onChange={(event) => setPassword(event.target.value)}
+                type="password"
+                value={password}
+              />
             </label>
-            <button className={styles.button} type="button">
+            <button className={styles.button} type="submit">
               Sign in
             </button>
-            <p className={styles.finePrint}>
-              API connection next: this form will post to
-              <strong> /api/auth/login</strong> and store the user session.
-            </p>
+            {message ? <p className={styles.errorText}>{message}</p> : null}
           </form>
         </div>
 
         <aside className={styles.card}>
-          <span className={styles.badge}>2FA ready</span>
-          <h2>Security built for digital delivery.</h2>
+          <span className={styles.badge}>Demo credentials</span>
           <div className={styles.list}>
             <div className={styles.listItem}>
-              <strong>Email verification</strong>
-              <span>Pending API</span>
+              <strong>Admin</strong>
+              <span>{demoCredentials.admin.email}</span>
             </div>
             <div className={styles.listItem}>
-              <strong>Two-factor login</strong>
-              <span>Backend ready</span>
+              <strong>Admin password</strong>
+              <span>{demoCredentials.admin.password}</span>
             </div>
             <div className={styles.listItem}>
-              <strong>Session tracking</strong>
-              <span>JWT</span>
+              <strong>Customer</strong>
+              <span>{demoCredentials.customer.email}</span>
+            </div>
+            <div className={styles.listItem}>
+              <strong>Customer password</strong>
+              <span>{demoCredentials.customer.password}</span>
             </div>
           </div>
         </aside>

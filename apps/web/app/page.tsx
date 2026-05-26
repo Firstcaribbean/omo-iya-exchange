@@ -82,7 +82,10 @@ export default function Home() {
 
         <nav className={styles.navLinks} aria-label="Main navigation">
           <a href="#marketplace">Marketplace</a>
+          <Link href="/marketplace">All products</Link>
           <a href="#checkout">Checkout</a>
+          <Link href="/login">Login</Link>
+          <Link href="/register">Create account</Link>
           <Link href="/dashboard">Dashboard</Link>
           <Link href="/admin">Admin</Link>
         </nav>
@@ -111,6 +114,9 @@ export default function Home() {
             <a className={styles.primaryButton} href="#marketplace">
               Browse products
             </a>
+            <Link className={styles.secondaryButton} href="/login">
+              Sign in
+            </Link>
             <a className={styles.secondaryButton} href="#checkout">
               View cart
             </a>

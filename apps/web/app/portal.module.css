@@ -159,7 +159,10 @@
 
 .form input,
 .form textarea,
-.form select {
+.form select,
+.toolbar input,
+.toolbar select,
+.table select {
   width: 100%;
   min-height: 46px;
   padding: 0 13px;
@@ -178,7 +181,10 @@
 
 .form input:focus,
 .form textarea:focus,
-.form select:focus {
+.form select:focus,
+.toolbar input:focus,
+.toolbar select:focus,
+.table select:focus {
   border-color: var(--blue);
   box-shadow: 0 0 0 4px rgba(6, 43, 102, 0.12);
 }
@@ -309,12 +315,96 @@
   text-transform: uppercase;
 }
 
+.toolbar {
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.productList {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.productRow {
+  display: grid;
+  grid-template-columns: 150px 1fr auto;
+  gap: 18px;
+  align-items: center;
+  padding: 14px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.productRow img {
+  width: 150px;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.productRow h2 {
+  margin-top: 8px;
+  color: var(--blue-strong);
+}
+
+.productRow strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--blue);
+}
+
+.rowActions,
+.inlineActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rowActions {
+  justify-content: flex-end;
+}
+
+.inlineActions button,
+.table button {
+  min-height: 34px;
+  padding: 0 10px;
+  color: var(--blue);
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+.successText,
+.errorText {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+.successText {
+  color: var(--green);
+  background: #ecfdf3;
+}
+
+.errorText {
+  color: var(--danger);
+  background: #fff1f0;
+}
+
 @media (max-width: 900px) {
   .heroGrid,
   .twoColumn,
   .dashboardGrid,
   .adminGrid,
-  .stats {
+  .stats,
+  .toolbar,
+  .productRow {
     grid-template-columns: 1fr;
   }
 
