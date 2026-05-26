@@ -263,10 +263,16 @@ export async function orderWithItems(orderIdFilter: string) {
     otpCode: order.otp_code || "",
     fulfillmentNote: order.fulfillment_note || "",
     items: (order.order_items || []).map((item: any) => ({
+      id: item.id,
       productId: item.product_id,
       name: item.name,
       price: Number(item.price || 0),
       quantity: Number(item.quantity || 0),
+      deliveredNumber: item.delivered_number || "",
+      username: item.username || "",
+      pin: item.pin || "",
+      otpCode: item.otp_code || "",
+      fulfillmentNote: item.fulfillment_note || "",
     })),
   })) satisfies Order[];
 }

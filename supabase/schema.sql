@@ -70,8 +70,19 @@ create table if not exists public.order_items (
   product_id text references public.products(id) on delete set null,
   name text not null,
   price numeric(12,2) not null,
-  quantity integer not null default 1
+  quantity integer not null default 1,
+  delivered_number text not null default '',
+  username text not null default '',
+  pin text not null default '',
+  otp_code text not null default '',
+  fulfillment_note text not null default ''
 );
+
+alter table public.order_items add column if not exists delivered_number text not null default '';
+alter table public.order_items add column if not exists username text not null default '';
+alter table public.order_items add column if not exists pin text not null default '';
+alter table public.order_items add column if not exists otp_code text not null default '';
+alter table public.order_items add column if not exists fulfillment_note text not null default '';
 
 create table if not exists public.tickets (
   id uuid primary key default gen_random_uuid(),

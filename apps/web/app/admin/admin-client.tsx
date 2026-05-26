@@ -83,6 +83,13 @@ export function AdminDashboard({ view = "overview" }: { view?: AdminView }) {
   const [productForm, setProductForm] = useState<Product>(emptyProduct);
   const [categoryName, setCategoryName] = useState("");
   const [otpDrafts, setOtpDrafts] = useState<Record<string, string>>({});
+  const [deliveryDrafts, setDeliveryDrafts] = useState<Record<string, {
+    deliveredNumber: string;
+    username: string;
+    pin: string;
+    otpCode: string;
+    fulfillmentNote: string;
+  }>>({});
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -147,9 +154,15 @@ export function AdminDashboard({ view = "overview" }: { view?: AdminView }) {
             createdAt: order.createdAt,
             items: (order.items || []).map((item: any) => ({
               productId: item.productId,
+              id: item.id,
               name: item.productName || item.name || "Service",
               price: Number(item.price),
               quantity: item.quantity,
+              deliveredNumber: item.deliveredNumber || "",
+              username: item.username || "",
+              pin: item.pin || "",
+              otpCode: item.otpCode || "",
+              fulfillmentNote: item.fulfillmentNote || "",
             })),
           }));
         }
@@ -421,6 +434,58 @@ export function AdminDashboard({ view = "overview" }: { view?: AdminView }) {
     );
     persist(next);
     setOtpDrafts((current) => ({ ...current, [orderId]: "" }));
+  }
+
+  function updateDeliveryDraft(
+    item: AppState["orders"][number]["items"][number],
+    field: "deliveredNumber" | "username" | "pin" | "otpCode" | "fulfillmentNote",
+    value: string,
+  ) {
+    const key = item.id || item.productId;
+    setDeliveryDrafts((current) => ({
+      ...current,
+      [key]: {
+        deliveredNumber: current[key]?.deliveredNumber ?? item.deliveredNumber ?? "",
+        username: current[key]?.username ?? item.username ?? "",
+        pin: current[key]?.pin ?? item.pin ?? "",
+        otpCode: current[key]?.otpCode ?? item.otpCode ?? "",
+        fulfillmentNote: current[key]?.fulfillmentNote ?? item.fulfillmentNote ?? "",
+        [field]: value,
+      },
+    }));
+  }
+
+  async function saveItemDelivery(orderId: string, item: AppState["orders"][number]["items"][number]) {
+    const key = item.id || item.productId;
+    const draft = deliveryDrafts[key] || {
+      deliveredNumber: item.deliveredNumber || "",
+      username: item.username || "",
+      pin: item.pin || "",
+      otpCode: item.otpCode || "",
+      fulfillmentNote: item.fulfillmentNote || "",
+    };
+
+    if (apiConfigured() && item.id) {
+      await apiRequest(`/api/admin/order-items/${item.id}/delivery`, {
+        method: "PUT",
+        body: JSON.stringify(draft),
+      });
+    }
+
+    const next = loadState();
+    next.orders = next.orders.map((order) =>
+      order.id === orderId
+        ? {
+            ...order,
+            items: order.items.map((currentItem) =>
+              (currentItem.id || currentItem.productId) === key
+                ? { ...currentItem, ...draft }
+                : currentItem,
+            ),
+          }
+        : order,
+    );
+    persist(next);
   }
 
   async function replyToTicket(ticketId: string) {
@@ -717,22 +782,62 @@ export function AdminDashboard({ view = "overview" }: { view?: AdminView }) {
           {view === "orders" ? (
           <section className={styles.panel}>
             <p className={styles.eyebrow}>Order operations</p>
-            <h2>Orders and OTP handoff</h2>
+            <h2>Orders and delivery handoff</h2>
             <div className={styles.tableWrap}>
               <table className={styles.table}>
-                <thead><tr><th>Order</th><th>Total</th><th>Status</th><th>Services</th><th>OTP handoff</th><th>Action</th></tr></thead>
+                <thead><tr><th>Order</th><th>Total</th><th>Status</th><th>Delivery credentials</th><th>Action</th></tr></thead>
                 <tbody>
                   {state.orders.length === 0 ? (
-                    <tr><td colSpan={6}>No orders yet.</td></tr>
+                    <tr><td colSpan={5}>No orders yet.</td></tr>
                   ) : (
                     state.orders.map((order) => (
                       <tr key={order.id}>
                         <td>{order.id}</td>
                         <td>{formatNaira(order.total)}</td>
                         <td>{order.status}</td>
-                        <td>{order.items.map((item) => item.name).join(", ")}</td>
-                        <td><input placeholder={order.otpCode || "Paste OTP for customer"} value={otpDrafts[order.id] || ""} onChange={(event) => setOtpDrafts((current) => ({ ...current, [order.id]: event.target.value }))} /></td>
-                        <td><div className={styles.inlineActions}><select value={order.status} onChange={(event) => updateOrderStatus(order.id, event.target.value as AppState["orders"][number]["status"])}><option>PENDING</option><option>PAID</option><option>FULFILLED</option></select><button onClick={() => saveOrderOtp(order.id)} type="button">Save OTP</button></div></td>
+                        <td>
+                          <div className={styles.list}>
+                            {order.items.map((item) => {
+                              const key = item.id || item.productId;
+                              const draft = deliveryDrafts[key] || {
+                                deliveredNumber: item.deliveredNumber || "",
+                                username: item.username || "",
+                                pin: item.pin || "",
+                                otpCode: item.otpCode || "",
+                                fulfillmentNote: item.fulfillmentNote || "",
+                              };
+
+                              return (
+                                <div className={styles.listItem} key={key}>
+                                  <div>
+                                    <strong>{item.name}</strong>
+                                    <div className={styles.toolbar}>
+                                      <input placeholder="Number / WhatsApp number" value={draft.deliveredNumber} onChange={(event) => updateDeliveryDraft(item, "deliveredNumber", event.target.value)} />
+                                      <input placeholder="Username" value={draft.username} onChange={(event) => updateDeliveryDraft(item, "username", event.target.value)} />
+                                    </div>
+                                    <div className={styles.toolbar}>
+                                      <input placeholder="PIN / password" value={draft.pin} onChange={(event) => updateDeliveryDraft(item, "pin", event.target.value)} />
+                                      <input placeholder="OTP code" value={draft.otpCode} onChange={(event) => updateDeliveryDraft(item, "otpCode", event.target.value)} />
+                                    </div>
+                                    <input placeholder="Fulfillment note for buyer" value={draft.fulfillmentNote} onChange={(event) => updateDeliveryDraft(item, "fulfillmentNote", event.target.value)} />
+                                  </div>
+                                  <button onClick={() => saveItemDelivery(order.id, item)} type="button">Save delivery</button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </td>
+                        <td>
+                          <div className={styles.inlineActions}>
+                            <select value={order.status} onChange={(event) => updateOrderStatus(order.id, event.target.value as AppState["orders"][number]["status"])}>
+                              <option>PENDING</option>
+                              <option>PAID</option>
+                              <option>FULFILLED</option>
+                            </select>
+                            <input placeholder={order.otpCode || "Legacy order OTP"} value={otpDrafts[order.id] || ""} onChange={(event) => setOtpDrafts((current) => ({ ...current, [order.id]: event.target.value }))} />
+                            <button onClick={() => saveOrderOtp(order.id)} type="button">Save legacy OTP</button>
+                          </div>
+                        </td>
                       </tr>
                     ))
                   )}

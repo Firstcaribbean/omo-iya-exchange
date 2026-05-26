@@ -42,6 +42,11 @@ export async function POST(request: Request) {
         name: item.name,
         price: Number(item.price || 0),
         quantity: Number(item.quantity || 1),
+        delivered_number: "",
+        username: "",
+        pin: "",
+        otp_code: "",
+        fulfillment_note: "",
       })),
     });
 

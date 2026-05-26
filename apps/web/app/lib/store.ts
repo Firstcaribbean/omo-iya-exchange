@@ -38,7 +38,18 @@ export type Order = {
   userId: string;
   total: number;
   status: "PENDING" | "PAID" | "FULFILLED";
-  items: Array<{ productId: string; name: string; price: number; quantity: number }>;
+  items: Array<{
+    id?: string;
+    productId: string;
+    name: string;
+    price: number;
+    quantity: number;
+    deliveredNumber?: string;
+    username?: string;
+    pin?: string;
+    otpCode?: string;
+    fulfillmentNote?: string;
+  }>;
   createdAt: string;
   otpCode?: string;
   fulfillmentNote?: string;

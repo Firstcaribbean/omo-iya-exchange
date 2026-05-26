@@ -64,6 +64,11 @@ export default function DashboardPage() {
               name: item.productName || item.name,
               price: Number(item.price),
               quantity: item.quantity,
+              deliveredNumber: item.deliveredNumber || "",
+              username: item.username || "",
+              pin: item.pin || "",
+              otpCode: item.otpCode || "",
+              fulfillmentNote: item.fulfillmentNote || "",
             })),
           }));
         }
@@ -229,7 +234,7 @@ export default function DashboardPage() {
                   <th>Total</th>
                   <th>Status</th>
                   <th>Services</th>
-                  <th>OTP / note</th>
+                  <th>Delivery details</th>
                 </tr>
               </thead>
               <tbody>
@@ -242,7 +247,30 @@ export default function DashboardPage() {
                       <td>{formatNaira(order.total)}</td>
                       <td>{order.status}</td>
                       <td>{order.items.map((item) => item.name).join(", ")}</td>
-                      <td>{order.otpCode ? `OTP: ${order.otpCode}` : order.fulfillmentNote || "Pending fulfillment"}</td>
+                      <td>
+                        {order.status === "PENDING" ? (
+                          "Visible after payment"
+                        ) : (
+                          <div className={styles.list}>
+                            {order.items.map((item) => {
+                              const details = [
+                                item.deliveredNumber ? `Number: ${item.deliveredNumber}` : "",
+                                item.username ? `Username: ${item.username}` : "",
+                                item.pin ? `PIN/Password: ${item.pin}` : "",
+                                item.otpCode ? `OTP: ${item.otpCode}` : "",
+                                item.fulfillmentNote || "",
+                              ].filter(Boolean);
+
+                              return (
+                                <div className={styles.listItem} key={item.id || item.productId}>
+                                  <strong>{item.name}</strong>
+                                  <span>{details.length ? details.join(" | ") : "Pending fulfillment"}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </td>
                     </tr>
                   ))
                 )}
