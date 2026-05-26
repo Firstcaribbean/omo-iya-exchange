@@ -11,7 +11,45 @@ export default function CheckoutPage() {
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
-    setState(loadState());
+    let active = true;
+
+    async function hydrate() {
+      const next = loadState();
+      if (apiConfigured()) {
+        const [productsResponse, meResponse] = await Promise.all([
+          apiRequest<AppState["products"]>("/api/products"),
+          apiRequest<any>("/api/auth/me"),
+        ]);
+        if (productsResponse.ok && productsResponse.data) {
+          next.products = productsResponse.data;
+        }
+        if (meResponse.ok && meResponse.data) {
+          const normalized = {
+            id: meResponse.data.id,
+            email: meResponse.data.email,
+            password: "",
+            firstName: meResponse.data.firstName,
+            lastName: meResponse.data.lastName,
+            phone: meResponse.data.phone || meResponse.data.phoneNumber || "",
+            role: meResponse.data.role === "CUSTOMER" ? "CUSTOMER" as const : "ADMIN" as const,
+            status: meResponse.data.status || "ACTIVE" as const,
+          };
+          const existingIndex = next.users.findIndex((item) => item.id === normalized.id);
+          if (existingIndex >= 0) {
+            next.users[existingIndex] = normalized;
+          } else {
+            next.users.push(normalized);
+          }
+          next.currentUserId = normalized.id;
+        }
+      }
+      if (active) setState(next);
+    }
+
+    hydrate();
+    return () => {
+      active = false;
+    };
   }, []);
 
   const items = useMemo(() => {
@@ -92,22 +130,17 @@ export default function CheckoutPage() {
       return;
     }
 
-    await apiRequest("/api/cart/clear", { method: "DELETE" });
-    for (const item of items) {
-      const cartResponse = await apiRequest("/api/cart/items", {
-        method: "POST",
-        body: JSON.stringify({ productId: item.id, quantity: item.quantity }),
-      });
-
-      if (!cartResponse.ok) {
-        setNotice(cartResponse.message || "Unable to sync cart. Please sign in and try again.");
-        return;
-      }
-    }
-
     const orderResponse = await apiRequest<{ id: string }>("/api/orders", {
       method: "POST",
-      body: JSON.stringify({ notes: "Website checkout" }),
+      body: JSON.stringify({
+        notes: "Website checkout",
+        items: items.map((item) => ({
+          productId: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+        })),
+      }),
     });
 
     if (!orderResponse.ok || !orderResponse.data) {
@@ -124,6 +157,9 @@ export default function CheckoutPage() {
     );
 
     if (paymentResponse.ok && paymentResponse.data?.authorization_url) {
+      const next = loadState();
+      next.cart = {};
+      saveState(next);
       window.location.href = paymentResponse.data.authorization_url;
       return;
     }

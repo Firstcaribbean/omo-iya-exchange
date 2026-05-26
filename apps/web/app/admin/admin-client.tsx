@@ -60,7 +60,7 @@ function mapApiProduct(product: any): Product {
     id: product.id,
     slug: product.slug,
     name: product.name,
-    category: product.category?.name || product.categoryName || "General",
+    category: product.category?.name || product.categoryName || product.category || "General",
     region: product.metadata?.region || product.region || "Global",
     country: product.metadata?.country || product.country || "Multi-country",
     availability: Number(product.stock ?? product.availability ?? 0),
@@ -92,15 +92,17 @@ export function AdminDashboard({ view = "overview" }: { view?: AdminView }) {
       const next = loadState();
 
       if (apiConfigured()) {
-        const [meResponse, productsResponse, categoriesResponse, ordersResponse, usersResponse] = await Promise.all([
-          apiRequest<any>("/api/auth/me"),
-          apiRequest<any[]>("/api/products?limit=100"),
-          apiRequest<Array<{ id: string; name: string; slug: string; description?: string }>>(
-            "/api/products/categories",
-          ),
-          apiRequest<any[]>("/api/admin/orders?limit=50"),
-          apiRequest<any[]>("/api/admin/users?limit=50"),
-        ]);
+          const [meResponse, productsResponse, categoriesResponse, ordersResponse, usersResponse, ticketsResponse, brandResponse] = await Promise.all([
+            apiRequest<any>("/api/auth/me"),
+            apiRequest<any[]>("/api/products?limit=100"),
+            apiRequest<Array<{ id: string; name: string; slug: string; description?: string }>>(
+              "/api/products/categories",
+            ),
+            apiRequest<any[]>("/api/admin/orders?limit=50"),
+            apiRequest<any[]>("/api/admin/users?limit=50"),
+            apiRequest<any[]>("/api/support/tickets"),
+            apiRequest<AppState["brand"]>("/api/admin/brand"),
+          ]);
 
         if (meResponse.ok && meResponse.data) {
           const user = meResponse.data;
@@ -166,6 +168,30 @@ export function AdminDashboard({ view = "overview" }: { view?: AdminView }) {
           }));
           next.users = [...adminUsers, ...customers];
         }
+
+        if (ticketsResponse.ok && ticketsResponse.data) {
+          next.tickets = ticketsResponse.data.map((ticket: any) => ({
+            id: ticket.id,
+            userId: ticket.userId,
+            subject: ticket.subject,
+            message: ticket.message || ticket.description || "",
+            status: ticket.status,
+            channel: ticket.channel || "SUPPORT",
+            assignedToAgent: Boolean(ticket.assignedToAgent),
+            contactName: ticket.contactName,
+            contactEmail: ticket.contactEmail,
+            messages: (ticket.messages || []).map((message: any) => ({
+              id: message.id,
+              sender: message.sender || "AGENT",
+              text: message.text || message.message,
+              createdAt: message.createdAt,
+            })),
+          }));
+        }
+
+        if (brandResponse.ok && brandResponse.data) {
+          next.brand = brandResponse.data;
+        }
       }
 
       if (active) setState(next);
@@ -199,9 +225,16 @@ export function AdminDashboard({ view = "overview" }: { view?: AdminView }) {
     window.location.href = "/login";
   }
 
-  function saveBrand(event: FormEvent<HTMLFormElement>) {
+  async function saveBrand(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    persist(loadState());
+    const next = loadState();
+    if (apiConfigured()) {
+      await apiRequest("/api/admin/brand", {
+        method: "PATCH",
+        body: JSON.stringify(next.brand),
+      });
+    }
+    persist(next);
   }
 
   function updateBrand(field: keyof AppState["brand"], value: string) {
@@ -286,7 +319,7 @@ export function AdminDashboard({ view = "overview" }: { view?: AdminView }) {
     persist(next);
   }
 
-  function addCategory(event: FormEvent<HTMLFormElement>) {
+  async function addCategory(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const next = loadState();
     if (!categoryName.trim()) return;
@@ -296,15 +329,26 @@ export function AdminDashboard({ view = "overview" }: { view?: AdminView }) {
       slug: slugify(categoryName),
       description: `${categoryName.trim()} services.`,
     };
-    next.categories.push(category);
+    if (apiConfigured()) {
+      const response = await apiRequest<Category>("/api/admin/categories", {
+        method: "POST",
+        body: JSON.stringify(category),
+      });
+      next.categories.push(response.ok && response.data ? response.data : category);
+    } else {
+      next.categories.push(category);
+    }
     persist(next);
     setCategoryName("");
   }
 
-  function deleteCategory(categoryId: string) {
+  async function deleteCategory(categoryId: string) {
     const next = loadState();
     const category = next.categories.find((item) => item.id === categoryId);
     if (!category) return;
+    if (apiConfigured()) {
+      await apiRequest(`/api/admin/categories/${categoryId}`, { method: "DELETE" });
+    }
     next.categories = next.categories.filter((item) => item.id !== categoryId);
     next.products = next.products.map((product) =>
       product.category === category.name
@@ -355,9 +399,15 @@ export function AdminDashboard({ view = "overview" }: { view?: AdminView }) {
     persist(next);
   }
 
-  function saveOrderOtp(orderId: string) {
+  async function saveOrderOtp(orderId: string) {
     const code = otpDrafts[orderId]?.trim();
     if (!code) return;
+    if (apiConfigured()) {
+      await apiRequest(`/api/admin/orders/${orderId}/otp`, {
+        method: "PUT",
+        body: JSON.stringify({ otpCode: code }),
+      });
+    }
 
     const next = loadState();
     next.orders = next.orders.map((order) =>

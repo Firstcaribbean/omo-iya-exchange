@@ -14,7 +14,7 @@ export function getApiBase() {
 }
 
 export function apiConfigured() {
-  return getApiBase().length > 0;
+  return getApiBase().length > 0 || Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL);
 }
 
 export function getAccessToken() {
@@ -35,7 +35,7 @@ export async function apiRequest<T>(
   options: RequestInit = {},
 ): Promise<ApiResult<T>> {
   const base = getApiBase();
-  if (!base) {
+  if (!base && !process.env.NEXT_PUBLIC_SUPABASE_URL) {
     return { ok: false, unavailable: true, message: "API URL is not configured." };
   }
 

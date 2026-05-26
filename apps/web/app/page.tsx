@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { apiConfigured, apiRequest } from "./lib/api";
 import { loadState, type AppState } from "./lib/store";
 import styles from "./page.module.css";
 
@@ -9,7 +10,25 @@ export default function Home() {
   const [state, setState] = useState<AppState | null>(null);
 
   useEffect(() => {
-    setState(loadState());
+    let active = true;
+
+    async function hydrate() {
+      const next = loadState();
+      if (apiConfigured()) {
+        const response = await apiRequest<Partial<AppState>>("/api/public/state");
+        if (response.ok && response.data) {
+          if (response.data.products) next.products = response.data.products;
+          if (response.data.categories) next.categories = response.data.categories;
+          if (response.data.brand) next.brand = response.data.brand;
+        }
+      }
+      if (active) setState(next);
+    }
+
+    hydrate();
+    return () => {
+      active = false;
+    };
   }, []);
 
   const products = state?.products ?? [];

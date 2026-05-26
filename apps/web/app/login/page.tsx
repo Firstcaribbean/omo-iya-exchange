@@ -25,7 +25,16 @@ export default function LoginPage() {
     if (apiConfigured()) {
       const response = await apiRequest<{
         accessToken: string;
-        user: { role: "CUSTOMER" | "ADMIN" | "SUPER_ADMIN" };
+        user: {
+          id: string;
+          email: string;
+          firstName: string;
+          lastName: string;
+          phone?: string;
+          phoneNumber?: string;
+          role: "CUSTOMER" | "ADMIN" | "SUPER_ADMIN";
+          status?: "ACTIVE" | "SUSPENDED";
+        };
       }>("/api/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
@@ -33,6 +42,25 @@ export default function LoginPage() {
 
       if (response.ok && response.data) {
         setAccessToken(response.data.accessToken);
+        const state = loadState();
+        const normalized = {
+          id: response.data.user.id,
+          email: response.data.user.email,
+          password: "",
+          firstName: response.data.user.firstName,
+          lastName: response.data.user.lastName,
+          phone: response.data.user.phone || response.data.user.phoneNumber || "",
+          role: response.data.user.role === "CUSTOMER" ? "CUSTOMER" as const : "ADMIN" as const,
+          status: response.data.user.status || "ACTIVE" as const,
+        };
+        const existingIndex = state.users.findIndex((item) => item.id === normalized.id);
+        if (existingIndex >= 0) {
+          state.users[existingIndex] = normalized;
+        } else {
+          state.users.push(normalized);
+        }
+        state.currentUserId = normalized.id;
+        saveState(state);
         window.location.href =
           response.data.user.role === "CUSTOMER" ? getSafeNextPath() : "/admin";
         return;

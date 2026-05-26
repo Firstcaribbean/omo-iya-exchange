@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { NextResponse } from "next/server";
+import { supabaseRest } from "../../../../lib/supabase-server";
 
 export const runtime = "nodejs";
 
@@ -35,6 +36,20 @@ export async function POST(request: Request) {
       metadata?: Record<string, unknown>;
     };
   };
+
+  if (event.event === "charge.success" && event.data?.reference && event.data.status === "success") {
+    const metadata = event.data.metadata || {};
+    const orderId = typeof metadata.orderId === "string" ? metadata.orderId : "";
+    if (orderId) {
+      await supabaseRest(`/orders?id=eq.${orderId}`, {
+        method: "PATCH",
+        body: {
+          status: "PAID",
+          paystack_reference: event.data.reference,
+        },
+      });
+    }
+  }
 
   return NextResponse.json({
     success: true,

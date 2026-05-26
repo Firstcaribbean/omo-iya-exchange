@@ -61,7 +61,7 @@ export default function DashboardPage() {
             fulfillmentNote: order.fulfillmentNote || "",
             items: (order.items || []).map((item: any) => ({
               productId: item.productId,
-              name: item.productName,
+              name: item.productName || item.name,
               price: Number(item.price),
               quantity: item.quantity,
             })),

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { apiConfigured, apiRequest } from "../../lib/api";
 import { currentUser, formatNaira, loadState, saveState, type AppState, type Product } from "../../lib/store";
 import styles from "../../portal.module.css";
 
@@ -9,7 +10,45 @@ export function ProductDetails({ slug }: { slug: string }) {
   const [state, setState] = useState<AppState | null>(null);
 
   useEffect(() => {
-    setState(loadState());
+    let active = true;
+
+    async function hydrate() {
+      const next = loadState();
+      if (apiConfigured()) {
+        const [productsResponse, meResponse] = await Promise.all([
+          apiRequest<Product[]>("/api/products"),
+          apiRequest<any>("/api/auth/me"),
+        ]);
+        if (productsResponse.ok && productsResponse.data) {
+          next.products = productsResponse.data;
+        }
+        if (meResponse.ok && meResponse.data) {
+          const normalized = {
+            id: meResponse.data.id,
+            email: meResponse.data.email,
+            password: "",
+            firstName: meResponse.data.firstName,
+            lastName: meResponse.data.lastName,
+            phone: meResponse.data.phone || meResponse.data.phoneNumber || "",
+            role: meResponse.data.role === "CUSTOMER" ? "CUSTOMER" as const : "ADMIN" as const,
+            status: meResponse.data.status || "ACTIVE" as const,
+          };
+          const existingIndex = next.users.findIndex((item) => item.id === normalized.id);
+          if (existingIndex >= 0) {
+            next.users[existingIndex] = normalized;
+          } else {
+            next.users.push(normalized);
+          }
+          next.currentUserId = normalized.id;
+        }
+      }
+      if (active) setState(next);
+    }
+
+    hydrate();
+    return () => {
+      active = false;
+    };
   }, []);
 
   const product = state?.products.find((item) => item.slug === slug);

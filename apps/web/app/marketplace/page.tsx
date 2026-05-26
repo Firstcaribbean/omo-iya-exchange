@@ -12,7 +12,7 @@ function mapApiProduct(product: any): Product {
     id: product.id,
     slug: product.slug,
     name: product.name,
-    category: product.category?.name || product.categoryName || "General",
+    category: product.category?.name || product.categoryName || product.category || "General",
     region: product.metadata?.region || product.region || "Global",
     country: product.metadata?.country || product.country || "Multi-country",
     availability: Number(product.stock ?? product.availability ?? 0),
@@ -49,6 +49,7 @@ export default function MarketplacePage() {
             "/api/products/categories",
           ),
         ]);
+        const meResponse = await apiRequest<any>("/api/auth/me");
 
         if (productsResponse.ok && productsResponse.data) {
           next.products = productsResponse.data.map(mapApiProduct);
@@ -61,6 +62,26 @@ export default function MarketplacePage() {
             slug: category.slug,
             description: category.description || `${category.name} services.`,
           }));
+        }
+
+        if (meResponse.ok && meResponse.data) {
+          const normalized = {
+            id: meResponse.data.id,
+            email: meResponse.data.email,
+            password: "",
+            firstName: meResponse.data.firstName,
+            lastName: meResponse.data.lastName,
+            phone: meResponse.data.phone || meResponse.data.phoneNumber || "",
+            role: meResponse.data.role === "CUSTOMER" ? "CUSTOMER" as const : "ADMIN" as const,
+            status: meResponse.data.status || "ACTIVE" as const,
+          };
+          const existingIndex = next.users.findIndex((item) => item.id === normalized.id);
+          if (existingIndex >= 0) {
+            next.users[existingIndex] = normalized;
+          } else {
+            next.users.push(normalized);
+          }
+          next.currentUserId = normalized.id;
         }
       }
 
