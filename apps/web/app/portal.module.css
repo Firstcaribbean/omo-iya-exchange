@@ -4,6 +4,7 @@
   background:
     linear-gradient(180deg, rgba(6, 43, 102, 0.08), transparent 460px),
     var(--background);
+  font-family: var(--font-geist-sans), Arial, sans-serif;
 }
 
 .topbar {
@@ -13,6 +14,11 @@
   gap: 18px;
   width: min(1180px, 100%);
   margin: 0 auto 24px;
+}
+
+.topbar strong {
+  font-size: 15px;
+  letter-spacing: 0;
 }
 
 .brand {
@@ -60,6 +66,7 @@
   min-height: 42px;
   padding: 0 14px;
   border-radius: 8px;
+  font-size: 14px;
   font-weight: 800;
 }
 
@@ -112,10 +119,10 @@
 
 .adminHero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 0.9fr) minmax(360px, 0.8fr);
   gap: 24px;
-  align-items: end;
-  padding: 30px;
+  align-items: center;
+  padding: 26px;
   background: #ffffff;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -123,10 +130,9 @@
 }
 
 .quickNav {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
-  justify-content: flex-end;
 }
 
 .quickNav a {
@@ -142,6 +148,12 @@
   font-weight: 800;
 }
 
+.quickNav .activeTab {
+  color: #ffffff;
+  background: var(--blue);
+  border-color: var(--blue);
+}
+
 .metricGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -149,8 +161,8 @@
 }
 
 .metricCard {
-  min-height: 124px;
-  padding: 22px;
+  min-height: 108px;
+  padding: 18px;
   background: #ffffff;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -168,7 +180,7 @@
   display: block;
   margin-top: 12px;
   color: var(--blue);
-  font-size: clamp(24px, 3vw, 34px);
+  font-size: 26px;
 }
 
 .card,
@@ -199,15 +211,15 @@
 .headline {
   margin-top: 10px;
   color: var(--blue-strong);
-  font-size: clamp(34px, 5vw, 64px);
-  line-height: 1;
+  font-size: clamp(30px, 3.4vw, 46px);
+  line-height: 1.05;
 }
 
 .lead {
-  margin-top: 16px;
+  margin-top: 12px;
   color: var(--muted);
-  font-size: 17px;
-  line-height: 1.7;
+  font-size: 15px;
+  line-height: 1.6;
 }
 
 .form {
@@ -222,6 +234,12 @@
   color: var(--blue-strong);
   font-size: 13px;
   font-weight: 800;
+}
+
+.panel h2,
+.card h2 {
+  font-size: 24px;
+  line-height: 1.2;
 }
 
 .form input,
@@ -342,6 +360,29 @@
 .sidebar a {
   color: var(--muted);
   font-size: 13px;
+}
+
+.adminTile {
+  display: grid;
+  min-height: 150px;
+  align-content: space-between;
+  gap: 12px;
+  padding: 22px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 18px 50px rgba(16, 24, 40, 0.06);
+}
+
+.adminTile strong {
+  color: var(--blue-strong);
+  font-size: 20px;
+}
+
+.adminTile small {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .badge {
@@ -537,7 +578,7 @@
   }
 
   .quickNav {
-    justify-content: flex-start;
+    grid-template-columns: 1fr;
   }
 
   .topbar {
