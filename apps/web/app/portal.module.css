@@ -104,6 +104,73 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.adminHero,
+.metricGrid {
+  width: min(1180px, 100%);
+  margin: 0 auto 18px;
+}
+
+.adminHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: end;
+  padding: 30px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 18px 50px rgba(16, 24, 40, 0.08);
+}
+
+.quickNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.quickNav a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 12px;
+  color: var(--blue);
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.metricCard {
+  min-height: 124px;
+  padding: 22px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 18px 50px rgba(16, 24, 40, 0.06);
+}
+
+.metricCard span {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.metricCard strong {
+  display: block;
+  margin-top: 12px;
+  color: var(--blue);
+  font-size: clamp(24px, 3vw, 34px);
+}
+
 .card,
 .panel,
 .sidebar {
@@ -189,6 +256,18 @@
 .table select:focus {
   border-color: var(--blue);
   box-shadow: 0 0 0 4px rgba(6, 43, 102, 0.12);
+}
+
+.checkboxLabel {
+  display: flex !important;
+  grid-template-columns: none !important;
+  align-items: center;
+  gap: 10px !important;
+}
+
+.checkboxLabel input {
+  width: 18px;
+  min-height: 18px;
 }
 
 .finePrint {
@@ -304,6 +383,11 @@
   border-collapse: collapse;
 }
 
+.tableWrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
 .table th,
 .table td {
   padding: 14px 10px;
@@ -401,6 +485,26 @@
   font-weight: 800;
 }
 
+.statusPill,
+.warningPill {
+  display: inline-flex;
+  width: fit-content;
+  padding: 7px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.statusPill {
+  color: var(--green);
+  background: #ecfdf3;
+}
+
+.warningPill {
+  color: #b54708;
+  background: #fffaeb;
+}
+
 .successText,
 .errorText {
   margin-top: 16px;
@@ -424,10 +528,16 @@
   .twoColumn,
   .dashboardGrid,
   .adminGrid,
+  .adminHero,
+  .metricGrid,
   .stats,
   .toolbar,
   .productRow {
     grid-template-columns: 1fr;
+  }
+
+  .quickNav {
+    justify-content: flex-start;
   }
 
   .topbar {

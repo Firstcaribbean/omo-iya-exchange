@@ -100,7 +100,7 @@ export function ChatWidget() {
       })),
     });
     saveState(state);
-    setStatus("Agent requested. Admin support can now reply from the admin page.");
+    setStatus("Agent requested. A support operator can now reply from the private dashboard.");
   }
 
   return (

@@ -73,11 +73,11 @@ export default function LoginPage() {
 
       <section className={styles.heroGrid}>
         <div className={styles.card}>
-          <p className={styles.eyebrow}>Customer and admin access</p>
+          <p className={styles.eyebrow}>Secure customer access</p>
           <h1 className={styles.headline}>Sign in to continue.</h1>
           <p className={styles.lead}>
             Enter your account details to access purchases, wallet, support, and
-            admin operations.
+            fulfillment updates.
           </p>
           <form className={styles.form} onSubmit={submit}>
             <label>
@@ -120,7 +120,7 @@ export default function LoginPage() {
             </div>
             <div className={styles.listItem}>
               <strong>Role routing</strong>
-              <span>Customer/Admin</span>
+              <span>Account based</span>
             </div>
           </div>
         </aside>

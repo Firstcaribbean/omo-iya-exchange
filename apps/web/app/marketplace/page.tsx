@@ -115,7 +115,6 @@ export default function MarketplacePage() {
         <nav className={styles.nav}>
           <Link href="/checkout">Cart ({cartCount})</Link>
           <Link href="/dashboard">Dashboard</Link>
-          <Link href="/admin">Admin</Link>
           <Link href="/login">Login</Link>
         </nav>
       </header>

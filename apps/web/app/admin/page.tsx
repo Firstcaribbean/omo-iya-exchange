@@ -167,6 +167,12 @@ export default function AdminPage() {
 
   const user = state ? currentUser(state) : null;
   const isAdmin = user?.role === "ADMIN";
+  const totalRevenue = state?.orders
+    .filter((order) => order.status === "PAID" || order.status === "FULFILLED")
+    .reduce((sum, order) => sum + order.total, 0) ?? 0;
+  const pendingOrders = state?.orders.filter((order) => order.status === "PENDING").length ?? 0;
+  const openTickets = state?.tickets.filter((ticket) => ticket.status !== "RESOLVED").length ?? 0;
+  const lowInventory = state?.products.filter((product) => product.availability <= 5).length ?? 0;
 
   function persist(next: AppState) {
     saveState(next);
@@ -416,13 +422,72 @@ export default function AdminPage() {
         </section>
       ) : (
         <>
-          <section className={styles.adminGrid}>
-            <div className={styles.card}><span className={styles.badge}>Services</span><h2>{state.products.length}</h2></div>
-            <div className={styles.card}><span className={styles.badge}>Orders</span><h2>{state.orders.length}</h2></div>
-            <div className={styles.card}><span className={styles.badge}>Users</span><h2>{state.users.length}</h2></div>
+          <section className={styles.adminHero}>
+            <div>
+              <p className={styles.eyebrow}>Private admin dashboard</p>
+              <h1 className={styles.headline}>Operate the marketplace from one control room.</h1>
+              <p className={styles.lead}>
+                Manage public homepage copy, service inventory, country availability,
+                OTP fulfillment, customer accounts, and support conversations.
+              </p>
+            </div>
+            <div className={styles.quickNav} aria-label="Admin sections">
+              <a href="#content">Public page</a>
+              <a href="#catalog">Catalog</a>
+              <a href="#orders">Orders</a>
+              <a href="#support">Support</a>
+            </div>
           </section>
 
-          <section className={styles.twoColumn}>
+          <section className={styles.metricGrid}>
+            <div className={styles.metricCard}>
+              <span>Revenue</span>
+              <strong>{formatNaira(totalRevenue)}</strong>
+            </div>
+            <div className={styles.metricCard}>
+              <span>Pending orders</span>
+              <strong>{pendingOrders}</strong>
+            </div>
+            <div className={styles.metricCard}>
+              <span>Open support</span>
+              <strong>{openTickets}</strong>
+            </div>
+            <div className={styles.metricCard}>
+              <span>Low inventory</span>
+              <strong>{lowInventory}</strong>
+            </div>
+          </section>
+
+          <section className={styles.twoColumn} id="content">
+            <div className={styles.panel}>
+              <p className={styles.eyebrow}>Public page controls</p>
+              <h2>Homepage and brand details</h2>
+              <p className={styles.finePrint}>
+                These settings update the public homepage and marketplace branding.
+              </p>
+              <form className={styles.form} onSubmit={saveBrand}>
+                <label>Brand name<input value={state.brand.name} onChange={(event) => updateBrand("name", event.target.value)} /></label>
+                <label>Tagline<input value={state.brand.tagline} onChange={(event) => updateBrand("tagline", event.target.value)} /></label>
+                <label>Homepage headline<input value={state.brand.heroTitle} onChange={(event) => updateBrand("heroTitle", event.target.value)} /></label>
+                <label>Homepage intro<textarea value={state.brand.heroCopy} onChange={(event) => updateBrand("heroCopy", event.target.value)} /></label>
+                <label>Support email<input value={state.brand.supportEmail} onChange={(event) => updateBrand("supportEmail", event.target.value)} /></label>
+                <label>WhatsApp<input value={state.brand.whatsapp} onChange={(event) => updateBrand("whatsapp", event.target.value)} /></label>
+                <button className={styles.button} type="submit">Save public content</button>
+              </form>
+            </div>
+
+            <aside className={styles.card}>
+              <span className={styles.badge}>Live preview data</span>
+              <div className={styles.list}>
+                <div className={styles.listItem}><strong>Homepage title</strong><span>{state.brand.heroTitle}</span></div>
+                <div className={styles.listItem}><strong>Services shown</strong><span>{state.products.length}</span></div>
+                <div className={styles.listItem}><strong>Support email</strong><span>{state.brand.supportEmail}</span></div>
+              </div>
+              <Link className={styles.button} href="/" target="_blank">Open public page</Link>
+            </aside>
+          </section>
+
+          <section className={styles.twoColumn} id="catalog">
             <div className={styles.panel} id="product-form">
               <p className={styles.eyebrow}>Service management</p>
               <h1 className={styles.headline}>{productForm.id ? "Edit service" : "Add service"}</h1>
@@ -434,10 +499,17 @@ export default function AdminPage() {
                 <label>Availability<input required min="0" type="number" value={productForm.availability} onChange={(event) => setProductForm((p) => ({ ...p, availability: Number(event.target.value) }))} /></label>
                 <label>Fulfillment window<input required value={productForm.fulfillmentWindow} onChange={(event) => setProductForm((p) => ({ ...p, fulfillmentWindow: event.target.value }))} /></label>
                 <label>Price<input required type="number" value={productForm.price} onChange={(event) => setProductForm((p) => ({ ...p, price: Number(event.target.value) }))} /></label>
+                <label>Old price<input type="number" value={productForm.oldPrice ?? ""} onChange={(event) => setProductForm((p) => ({ ...p, oldPrice: event.target.value ? Number(event.target.value) : undefined }))} /></label>
+                <label>Badge<input value={productForm.badge} onChange={(event) => setProductForm((p) => ({ ...p, badge: event.target.value }))} /></label>
+                <label>Delivery label<input value={productForm.delivery} onChange={(event) => setProductForm((p) => ({ ...p, delivery: event.target.value }))} /></label>
                 <label>Image URL<input required value={productForm.image} onChange={(event) => setProductForm((p) => ({ ...p, image: event.target.value }))} /></label>
                 <label>Description<textarea required value={productForm.description} onChange={(event) => setProductForm((p) => ({ ...p, description: event.target.value }))} /></label>
-                <label><input checked={Boolean(productForm.requiresOtp)} type="checkbox" onChange={(event) => setProductForm((p) => ({ ...p, requiresOtp: event.target.checked }))} /> Requires OTP handoff</label>
-                <button className={styles.button} type="submit">Save service</button>
+                <label>Includes<textarea value={productForm.includes.join("\n")} onChange={(event) => setProductForm((p) => ({ ...p, includes: event.target.value.split("\n").map((item) => item.trim()).filter(Boolean) }))} /></label>
+                <label className={styles.checkboxLabel}><input checked={Boolean(productForm.requiresOtp)} type="checkbox" onChange={(event) => setProductForm((p) => ({ ...p, requiresOtp: event.target.checked }))} /> Requires OTP handoff</label>
+                <div className={styles.inlineActions}>
+                  <button className={styles.button} type="submit">Save service</button>
+                  <button className={styles.ghostButton} onClick={() => setProductForm({ ...emptyProduct, category: state.categories[0]?.name ?? "WhatsApp Business Setup" })} type="button">Clear form</button>
+                </div>
               </form>
             </div>
 
@@ -460,84 +532,100 @@ export default function AdminPage() {
 
           <section className={styles.panel}>
             <p className={styles.eyebrow}>Service catalog</p>
-            <table className={styles.table}>
-              <thead><tr><th>Service</th><th>Region</th><th>Country</th><th>Available</th><th>Price</th><th>Actions</th></tr></thead>
-              <tbody>
-                {state.products.map((product) => (
-                  <tr key={product.id}>
-                    <td>{product.name}</td>
-                    <td>{product.region}</td>
-                    <td>{product.country}</td>
-                    <td>{product.availability}</td>
-                    <td>{formatNaira(product.price)}</td>
-                    <td>
-                      <div className={styles.inlineActions}>
-                        <button onClick={() => editProduct(product)} type="button">Edit</button>
-                        <button onClick={() => deleteProduct(product.id)} type="button">Delete</button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </section>
-
-          <section className={styles.twoColumn}>
-            <div className={styles.panel}>
-              <p className={styles.eyebrow}>Brand details</p>
-              <form className={styles.form} onSubmit={saveBrand}>
-                <label>Brand name<input value={state.brand.name} onChange={(event) => updateBrand("name", event.target.value)} /></label>
-                <label>Tagline<input value={state.brand.tagline} onChange={(event) => updateBrand("tagline", event.target.value)} /></label>
-                <label>Support email<input value={state.brand.supportEmail} onChange={(event) => updateBrand("supportEmail", event.target.value)} /></label>
-                <label>WhatsApp<input value={state.brand.whatsapp} onChange={(event) => updateBrand("whatsapp", event.target.value)} /></label>
-                <button className={styles.button} type="submit">Save brand</button>
-              </form>
-            </div>
-            <aside className={styles.card}>
-              <span className={styles.badge}>Restore defaults</span>
-              <p className={styles.lead}>Restore seeded services, users, categories, and brand settings.</p>
-              <button className={styles.ghostButton} onClick={() => setState(resetState())} type="button">Reset local app data</button>
-            </aside>
-          </section>
-
-          <section className={styles.panel}>
-            <p className={styles.eyebrow}>Orders and users</p>
-            <table className={styles.table}>
-              <thead><tr><th>Order</th><th>Total</th><th>Status</th><th>OTP handoff</th><th>Action</th></tr></thead>
-              <tbody>{state.orders.map((order) => <tr key={order.id}><td>{order.id}</td><td>{formatNaira(order.total)}</td><td>{order.status}</td><td><input placeholder={order.otpCode || "Paste OTP"} value={otpDrafts[order.id] || ""} onChange={(event) => setOtpDrafts((current) => ({ ...current, [order.id]: event.target.value }))} /></td><td><div className={styles.inlineActions}><select value={order.status} onChange={(event) => updateOrderStatus(order.id, event.target.value as AppState["orders"][number]["status"])}><option>PENDING</option><option>PAID</option><option>FULFILLED</option></select><button onClick={() => saveOrderOtp(order.id)} type="button">Save OTP</button></div></td></tr>)}</tbody>
-            </table>
-            <table className={styles.table}>
-              <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Action</th></tr></thead>
-              <tbody>{state.users.map((item) => <tr key={item.id}><td>{item.email}</td><td>{item.role}</td><td>{item.status}</td><td><button onClick={() => updateUserStatus(item.id)} type="button">{item.status === "ACTIVE" ? "Suspend" : "Reactivate"}</button></td></tr>)}</tbody>
-            </table>
-          </section>
-
-          <section className={styles.panel}>
-            <p className={styles.eyebrow}>Live chat and support</p>
-            <table className={styles.table}>
-              <thead><tr><th>Ticket</th><th>Subject</th><th>Conversation</th><th>Reply</th><th>Status</th></tr></thead>
-              <tbody>
-                {state.tickets.length === 0 ? (
-                  <tr><td colSpan={5}>No support messages yet.</td></tr>
-                ) : (
-                  state.tickets.map((ticket) => (
-                    <tr key={ticket.id}>
-                      <td>{ticket.id}</td>
-                      <td>{ticket.subject}</td>
-                      <td>{(ticket.messages || []).map((message) => `${message.sender}: ${message.text}`).join(" / ") || ticket.message}</td>
-                      <td><div className={styles.inlineActions}><input placeholder="Reply as agent" value={replyDrafts[ticket.id] || ""} onChange={(event) => setReplyDrafts((current) => ({ ...current, [ticket.id]: event.target.value }))} /><button onClick={() => replyToTicket(ticket.id)} type="button">Reply</button></div></td>
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead><tr><th>Service</th><th>Region</th><th>Country</th><th>Inventory</th><th>Price</th><th>OTP</th><th>Actions</th></tr></thead>
+                <tbody>
+                  {state.products.map((product) => (
+                    <tr key={product.id}>
+                      <td>{product.name}</td>
+                      <td>{product.region}</td>
+                      <td>{product.country}</td>
+                      <td><span className={product.availability <= 5 ? styles.warningPill : styles.statusPill}>{product.availability} left</span></td>
+                      <td>{formatNaira(product.price)}</td>
+                      <td>{product.requiresOtp ? "Required" : "No"}</td>
                       <td>
-                        <select value={ticket.status} onChange={(event) => updateTicketStatus(ticket.id, event.target.value as AppState["tickets"][number]["status"])}>
-                          <option>OPEN</option>
-                          <option>IN_PROGRESS</option>
-                          <option>RESOLVED</option>
-                        </select>
+                        <div className={styles.inlineActions}>
+                          <button onClick={() => editProduct(product)} type="button">Edit</button>
+                          <button onClick={() => deleteProduct(product.id)} type="button">Delete</button>
+                        </div>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section className={styles.panel} id="orders">
+            <p className={styles.eyebrow}>Orders and users</p>
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead><tr><th>Order</th><th>Total</th><th>Status</th><th>Services</th><th>OTP handoff</th><th>Action</th></tr></thead>
+                <tbody>
+                  {state.orders.length === 0 ? (
+                    <tr><td colSpan={6}>No orders yet.</td></tr>
+                  ) : (
+                    state.orders.map((order) => (
+                      <tr key={order.id}>
+                        <td>{order.id}</td>
+                        <td>{formatNaira(order.total)}</td>
+                        <td>{order.status}</td>
+                        <td>{order.items.map((item) => item.name).join(", ")}</td>
+                        <td><input placeholder={order.otpCode || "Paste OTP for customer"} value={otpDrafts[order.id] || ""} onChange={(event) => setOtpDrafts((current) => ({ ...current, [order.id]: event.target.value }))} /></td>
+                        <td><div className={styles.inlineActions}><select value={order.status} onChange={(event) => updateOrderStatus(order.id, event.target.value as AppState["orders"][number]["status"])}><option>PENDING</option><option>PAID</option><option>FULFILLED</option></select><button onClick={() => saveOrderOtp(order.id)} type="button">Save OTP</button></div></td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section className={styles.panel} id="users">
+            <p className={styles.eyebrow}>Customer accounts</p>
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody>{state.users.map((item) => <tr key={item.id}><td>{item.email}</td><td>{item.role}</td><td>{item.status}</td><td><button onClick={() => updateUserStatus(item.id)} type="button">{item.status === "ACTIVE" ? "Suspend" : "Reactivate"}</button></td></tr>)}</tbody>
+              </table>
+            </div>
+          </section>
+
+          <section className={styles.panel} id="support">
+            <p className={styles.eyebrow}>Live chat and support</p>
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead><tr><th>Ticket</th><th>Subject</th><th>Conversation</th><th>Reply</th><th>Status</th></tr></thead>
+                <tbody>
+                  {state.tickets.length === 0 ? (
+                    <tr><td colSpan={5}>No support messages yet.</td></tr>
+                  ) : (
+                    state.tickets.map((ticket) => (
+                      <tr key={ticket.id}>
+                        <td>{ticket.id}</td>
+                        <td>{ticket.subject}</td>
+                        <td>{(ticket.messages || []).map((message) => `${message.sender}: ${message.text}`).join(" / ") || ticket.message}</td>
+                        <td><div className={styles.inlineActions}><input placeholder="Reply as agent" value={replyDrafts[ticket.id] || ""} onChange={(event) => setReplyDrafts((current) => ({ ...current, [ticket.id]: event.target.value }))} /><button onClick={() => replyToTicket(ticket.id)} type="button">Reply</button></div></td>
+                        <td>
+                          <select value={ticket.status} onChange={(event) => updateTicketStatus(ticket.id, event.target.value as AppState["tickets"][number]["status"])}>
+                            <option>OPEN</option>
+                            <option>IN_PROGRESS</option>
+                            <option>RESOLVED</option>
+                          </select>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section className={styles.card}>
+            <span className={styles.badge}>Maintenance</span>
+            <p className={styles.lead}>Restore seeded services, users, categories, and brand settings for local testing.</p>
+            <button className={styles.ghostButton} onClick={() => setState(resetState())} type="button">Reset local app data</button>
           </section>
         </>
       )}

@@ -1,18 +1,34 @@
+"use client";
+
 import Link from "next/link";
-import { products } from "./market-data";
+import { useEffect, useMemo, useState } from "react";
+import { loadState, type AppState } from "./lib/store";
 import styles from "./page.module.css";
 
-const featuredServices = products.slice(0, 3);
-
 export default function Home() {
+  const [state, setState] = useState<AppState | null>(null);
+
+  useEffect(() => {
+    setState(loadState());
+  }, []);
+
+  const products = state?.products ?? [];
+  const featuredServices = useMemo(() => products.slice(0, 3), [products]);
+  const brandName = state?.brand.name ?? "Omo Iya Exchange";
+  const tagline = state?.brand.tagline ?? "Regional onboarding services";
+  const heroTitle = state?.brand.heroTitle || brandName;
+  const heroCopy =
+    state?.brand.heroCopy ||
+    "Order compliant account setup, WhatsApp Business onboarding, SIM registration assistance, and regional launch support from separate, focused pages.";
+
   return (
     <main className={styles.page}>
       <header className={styles.navbar}>
         <Link className={styles.brand} href="/" aria-label="Omo Iya Exchange home">
           <span className={styles.brandMark}>OI</span>
           <span>
-            <strong>Omo Iya Exchange</strong>
-            <small>Regional onboarding services</small>
+            <strong>{brandName}</strong>
+            <small>{tagline}</small>
           </span>
         </Link>
 
@@ -22,7 +38,6 @@ export default function Home() {
           <Link href="/login">Login</Link>
           <Link href="/register">Create account</Link>
           <Link href="/dashboard">Dashboard</Link>
-          <Link href="/admin">Admin</Link>
         </nav>
 
         <Link className={styles.cartPill} href="/checkout" aria-label="Open cart">
@@ -40,12 +55,8 @@ export default function Home() {
         </div>
         <div className={styles.heroContent}>
           <p className={styles.eyebrow}>Nigeria optimized marketplace</p>
-          <h1>Omo Iya Exchange</h1>
-          <p>
-            Order compliant account setup, WhatsApp Business onboarding, SIM
-            registration assistance, and regional launch support from separate,
-            focused pages.
-          </p>
+          <h1>{heroTitle}</h1>
+          <p>{heroCopy}</p>
           <div className={styles.heroActions}>
             <Link className={styles.primaryButton} href="/marketplace">
               Browse services
@@ -66,7 +77,7 @@ export default function Home() {
           <span>service completions</span>
         </div>
         <div>
-          <strong>{products.length}</strong>
+          <strong>{products.length || "6"}</strong>
           <span>active service types</span>
         </div>
         <div>
@@ -120,15 +131,15 @@ export default function Home() {
           <article>
             <span className={styles.panelLabel}>3</span>
             <h2>Track fulfillment</h2>
-            <p>Admin support can provide status updates, agent replies, and OTP handoff when required.</p>
+            <p>Support can provide status updates, agent replies, and OTP handoff when required.</p>
           </article>
         </div>
       </section>
 
       <footer className={styles.footer}>
         <div>
-          <strong>Omo Iya Exchange</strong>
-          <span>Regional onboarding services</span>
+          <strong>{brandName}</strong>
+          <span>{tagline}</span>
         </div>
         <nav aria-label="Footer links">
           <Link href="/marketplace">Marketplace</Link>
