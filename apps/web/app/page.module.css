@@ -229,6 +229,12 @@
   font-size: 14px;
 }
 
+.homeSection {
+  width: min(1180px, calc(100% - 40px));
+  margin: 0 auto;
+  padding-top: 72px;
+}
+
 .marketplace,
 .checkoutSection,
 .workflowGrid,
@@ -283,6 +289,70 @@
 .searchBox input:focus {
   border-color: var(--blue);
   box-shadow: 0 0 0 4px rgba(6, 43, 102, 0.12);
+}
+
+.textLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 14px;
+  color: #ffffff;
+  background: var(--blue);
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+.featureGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.featureCard {
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 14px 34px rgba(16, 24, 40, 0.06);
+}
+
+.featureCard img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.featureCard > div {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+}
+
+.featureCard span {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.featureCard h3 {
+  color: var(--blue-strong);
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.featureCard p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.featureCard a {
+  width: fit-content;
+  color: var(--blue);
+  font-weight: 850;
 }
 
 .categoryBar {
@@ -647,6 +717,33 @@
   display: none;
 }
 
+.processGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.processGrid article {
+  min-height: 230px;
+  padding: 28px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.processGrid h2 {
+  margin-top: 16px;
+  color: var(--blue-strong);
+  font-size: 26px;
+  line-height: 1.1;
+}
+
+.processGrid p {
+  margin-top: 12px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
 .workflowGrid article {
   min-height: 330px;
   padding: 32px;
@@ -738,6 +835,8 @@
   }
 
   .metrics,
+  .featureGrid,
+  .processGrid,
   .productGrid,
   .checkoutSection,
   .workflowGrid {
@@ -777,6 +876,8 @@
   }
 
   .metrics,
+  .featureGrid,
+  .processGrid,
   .productGrid,
   .checkoutSection,
   .workflowGrid,
