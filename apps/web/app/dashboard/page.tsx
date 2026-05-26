@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { apiConfigured, apiRequest, clearAccessToken } from "../lib/api";
 import { currentUser, formatNaira, loadState, saveState, type AppState } from "../lib/store";
 import styles from "../portal.module.css";
 
@@ -10,7 +11,79 @@ export default function DashboardPage() {
   const [ticket, setTicket] = useState({ subject: "", message: "" });
 
   useEffect(() => {
-    setState(loadState());
+    let active = true;
+
+    async function hydrate() {
+      const next = loadState();
+      if (apiConfigured()) {
+        const [meResponse, ordersResponse, ticketsResponse] = await Promise.all([
+          apiRequest<{
+            id: string;
+            email: string;
+            firstName: string;
+            lastName: string;
+            phoneNumber?: string;
+            role: "CUSTOMER" | "ADMIN" | "SUPER_ADMIN";
+          }>("/api/auth/me"),
+          apiRequest<any[]>("/api/orders"),
+          apiRequest<any[]>("/api/support/tickets"),
+        ]);
+
+        if (meResponse.ok && meResponse.data) {
+          const user = meResponse.data;
+          const existing = next.users.find((item) => item.id === user.id);
+          const normalized = {
+            id: user.id,
+            email: user.email,
+            password: "",
+            firstName: user.firstName,
+            lastName: user.lastName,
+            phone: user.phoneNumber || "",
+            role: user.role === "CUSTOMER" ? "CUSTOMER" as const : "ADMIN" as const,
+            status: "ACTIVE" as const,
+          };
+          if (existing) {
+            Object.assign(existing, normalized);
+          } else {
+            next.users.push(normalized);
+          }
+          next.currentUserId = user.id;
+        }
+
+        if (ordersResponse.ok && ordersResponse.data) {
+          next.orders = ordersResponse.data.map((order: any) => ({
+            id: order.id,
+            userId: order.userId,
+            total: Number(order.total),
+            status: order.status,
+            createdAt: order.createdAt,
+            items: (order.items || []).map((item: any) => ({
+              productId: item.productId,
+              name: item.productName,
+              price: Number(item.price),
+              quantity: item.quantity,
+            })),
+          }));
+        }
+
+        if (ticketsResponse.ok && ticketsResponse.data) {
+          next.tickets = ticketsResponse.data.map((ticket: any) => ({
+            id: ticket.id,
+            userId: ticket.userId,
+            subject: ticket.subject,
+            message: ticket.description,
+            status: ticket.status,
+          }));
+        }
+      }
+
+      if (active) setState(next);
+    }
+
+    hydrate();
+    return () => {
+      active = false;
+    };
   }, []);
 
   const user = state ? currentUser(state) : null;
@@ -27,11 +100,23 @@ export default function DashboardPage() {
     const next = loadState();
     next.currentUserId = null;
     saveState(next);
+    clearAccessToken();
     window.location.href = "/login";
   }
 
-  function createTicket(event: FormEvent<HTMLFormElement>) {
+  async function createTicket(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (apiConfigured()) {
+      const response = await apiRequest("/api/support/tickets", {
+        method: "POST",
+        body: JSON.stringify({ subject: ticket.subject, description: ticket.message }),
+      });
+      if (response.ok) {
+        window.location.reload();
+        return;
+      }
+    }
+
     const next = loadState();
     const activeUser = currentUser(next);
     if (!activeUser) {

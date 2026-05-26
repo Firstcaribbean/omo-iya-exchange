@@ -138,8 +138,8 @@ export default function Home() {
           <span>average product rating</span>
         </div>
         <div>
-          <strong>Test mode</strong>
-          <span>Paystack checkout ready</span>
+          <strong>Paystack</strong>
+          <span>secure checkout ready</span>
         </div>
       </section>
 
@@ -211,9 +211,8 @@ export default function Home() {
           <p className={styles.eyebrow}>Checkout</p>
           <h2>Cart and Paystack handoff</h2>
           <p>
-            This front-end flow is ready for the API connection. The next pass
-            will create the order on the backend, initialize Paystack, and
-            redirect the buyer to the secure payment page.
+            Customer accounts, backend cart sync, order creation, and Paystack
+            handoff are prepared for the production API connection.
           </p>
           <div className={styles.steps}>
             <span>1. Review cart</span>
@@ -278,7 +277,7 @@ export default function Home() {
             Continue to Paystack
           </Link>
           <p className={styles.checkoutNote}>
-            Payments will run in Paystack test mode until live keys are added.
+            Add the Paystack live keys in production to accept real payments.
           </p>
         </aside>
       </section>

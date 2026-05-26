@@ -2,8 +2,28 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { apiConfigured, apiRequest } from "../lib/api";
 import { formatNaira, loadState, saveState, type AppState } from "../lib/store";
+import type { Product } from "../market-data";
 import styles from "../portal.module.css";
+
+function mapApiProduct(product: any): Product {
+  return {
+    id: product.id,
+    slug: product.slug,
+    name: product.name,
+    category: product.category?.name || product.categoryName || "General",
+    price: Number(product.price),
+    oldPrice: product.comparePrice ? Number(product.comparePrice) : undefined,
+    rating: Number(product.rating || 5),
+    sales: Number(product.sales || 0),
+    image: product.images?.[0] || product.image || "https://images.unsplash.com/photo-1611224923853-80b023f02d71?auto=format&fit=crop&w=900&q=80",
+    badge: product.featured ? "Featured" : "Verified",
+    description: product.description || product.shortDesc || "",
+    delivery: product.metadata?.delivery || "Instant download",
+    includes: product.metadata?.includes || ["Digital file"],
+  };
+}
 
 export default function MarketplacePage() {
   const [state, setState] = useState<AppState | null>(null);
@@ -11,7 +31,39 @@ export default function MarketplacePage() {
   const [query, setQuery] = useState("");
 
   useEffect(() => {
-    setState(loadState());
+    let active = true;
+
+    async function hydrate() {
+      const next = loadState();
+      if (apiConfigured()) {
+        const [productsResponse, categoriesResponse] = await Promise.all([
+          apiRequest<Product[]>("/api/products"),
+          apiRequest<Array<{ id: string; name: string; slug: string; description?: string }>>(
+            "/api/products/categories",
+          ),
+        ]);
+
+        if (productsResponse.ok && productsResponse.data) {
+          next.products = productsResponse.data.map(mapApiProduct);
+        }
+
+        if (categoriesResponse.ok && categoriesResponse.data) {
+          next.categories = categoriesResponse.data.map((category) => ({
+            id: category.id,
+            name: category.name,
+            slug: category.slug,
+            description: category.description || `${category.name} products.`,
+          }));
+        }
+      }
+
+      if (active) setState(next);
+    }
+
+    hydrate();
+    return () => {
+      active = false;
+    };
   }, []);
 
   const products = state?.products ?? [];

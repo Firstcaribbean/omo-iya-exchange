@@ -2,20 +2,41 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
-import { demoCredentials, loadState, saveState } from "../lib/store";
+import { apiConfigured, apiRequest, setAccessToken } from "../lib/api";
+import { loadState, saveState } from "../lib/store";
 import styles from "../portal.module.css";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState(demoCredentials.customer.email);
-  const [password, setPassword] = useState(demoCredentials.customer.password);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
     loadState();
   }, []);
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (apiConfigured()) {
+      const response = await apiRequest<{
+        accessToken: string;
+        user: { role: "CUSTOMER" | "ADMIN" | "SUPER_ADMIN" };
+      }>("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.ok && response.data) {
+        setAccessToken(response.data.accessToken);
+        window.location.href =
+          response.data.user.role === "CUSTOMER" ? "/dashboard" : "/admin";
+        return;
+      }
+
+      setMessage(response.message || "Login failed. Please check your details.");
+      return;
+    }
+
     const state = loadState();
     const user = state.users.find(
       (item) =>
@@ -32,16 +53,6 @@ export default function LoginPage() {
     state.currentUserId = user.id;
     saveState(state);
     window.location.href = user.role === "ADMIN" ? "/admin" : "/dashboard";
-  }
-
-  function fillAdmin() {
-    setEmail(demoCredentials.admin.email);
-    setPassword(demoCredentials.admin.password);
-  }
-
-  function fillCustomer() {
-    setEmail(demoCredentials.customer.email);
-    setPassword(demoCredentials.customer.password);
   }
 
   return (
@@ -65,16 +76,9 @@ export default function LoginPage() {
           <p className={styles.eyebrow}>Customer and admin access</p>
           <h1 className={styles.headline}>Sign in to continue.</h1>
           <p className={styles.lead}>
-            Use the seeded credentials below, or create a new customer account.
+            Enter your account details to access purchases, wallet, support, and
+            admin operations.
           </p>
-          <div className={styles.inlineActions}>
-            <button className={styles.ghostButton} onClick={fillCustomer} type="button">
-              Fill customer login
-            </button>
-            <button className={styles.ghostButton} onClick={fillAdmin} type="button">
-              Fill admin login
-            </button>
-          </div>
           <form className={styles.form} onSubmit={submit}>
             <label>
               Email address
@@ -100,23 +104,23 @@ export default function LoginPage() {
         </div>
 
         <aside className={styles.card}>
-          <span className={styles.badge}>Demo credentials</span>
+          <span className={styles.badge}>Secure access</span>
           <div className={styles.list}>
             <div className={styles.listItem}>
-              <strong>Admin</strong>
-              <span>{demoCredentials.admin.email}</span>
+              <strong>JWT sessions</strong>
+              <span>API ready</span>
             </div>
             <div className={styles.listItem}>
-              <strong>Admin password</strong>
-              <span>{demoCredentials.admin.password}</span>
+              <strong>2FA support</strong>
+              <span>Backend ready</span>
             </div>
             <div className={styles.listItem}>
-              <strong>Customer</strong>
-              <span>{demoCredentials.customer.email}</span>
+              <strong>Email verification</strong>
+              <span>Resend/SMTP ready</span>
             </div>
             <div className={styles.listItem}>
-              <strong>Customer password</strong>
-              <span>{demoCredentials.customer.password}</span>
+              <strong>Role routing</strong>
+              <span>Customer/Admin</span>
             </div>
           </div>
         </aside>

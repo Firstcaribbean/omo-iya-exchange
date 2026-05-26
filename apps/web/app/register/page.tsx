@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
+import { apiConfigured, apiRequest } from "../lib/api";
 import { loadState, saveState, type User } from "../lib/store";
 import styles from "../portal.module.css";
 
@@ -19,8 +20,29 @@ export default function RegisterPage() {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (apiConfigured()) {
+      const response = await apiRequest<{ id: string; email: string }>("/api/auth/register", {
+        method: "POST",
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+          firstName: form.firstName,
+          lastName: form.lastName,
+          phoneNumber: form.phone,
+        }),
+      });
+
+      if (response.ok) {
+        window.location.href = "/login";
+        return;
+      }
+
+      setMessage(response.message || "Registration failed. Please try again.");
+      return;
+    }
+
     const state = loadState();
 
     if (state.users.some((user) => user.email.toLowerCase() === form.email.toLowerCase())) {

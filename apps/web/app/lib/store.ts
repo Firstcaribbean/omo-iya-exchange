@@ -63,7 +63,7 @@ export type AppState = {
 
 const STORAGE_KEY = "omo-iya-exchange-state-v1";
 
-export const demoCredentials = {
+export const seededCredentials = {
   admin: { email: "admin@omoiyaexchange.com", password: "Admin@12345" },
   customer: { email: "customer@omoiyaexchange.com", password: "Customer@12345" },
 };
@@ -90,8 +90,8 @@ export function createDefaultState(): AppState {
     users: [
       {
         id: "admin-user",
-        email: demoCredentials.admin.email,
-        password: demoCredentials.admin.password,
+        email: seededCredentials.admin.email,
+        password: seededCredentials.admin.password,
         firstName: "Admin",
         lastName: "Manager",
         phone: "+2348000000000",
@@ -100,9 +100,9 @@ export function createDefaultState(): AppState {
       },
       {
         id: "customer-user",
-        email: demoCredentials.customer.email,
-        password: demoCredentials.customer.password,
-        firstName: "Demo",
+        email: seededCredentials.customer.email,
+        password: seededCredentials.customer.password,
+        firstName: "Marketplace",
         lastName: "Customer",
         phone: "+2348012345678",
         role: "CUSTOMER",

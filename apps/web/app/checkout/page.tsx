@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { apiConfigured, apiRequest } from "../lib/api";
 import { currentUser, formatNaira, loadState, saveState, type AppState } from "../lib/store";
 import styles from "../portal.module.css";
 
@@ -39,6 +40,11 @@ export default function CheckoutPage() {
   }
 
   function placeOrder() {
+    if (apiConfigured()) {
+      placeApiOrder();
+      return;
+    }
+
     const next = loadState();
     const activeUser = currentUser(next);
 
@@ -71,7 +77,52 @@ export default function CheckoutPage() {
     next.cart = {};
     saveState(next);
     setState(next);
-    setNotice("Payment simulation successful. Order added to your dashboard.");
+    setNotice("Order completed successfully. It has been added to your dashboard.");
+  }
+
+  async function placeApiOrder() {
+    if (items.length === 0) {
+      setNotice("Add at least one product before checkout.");
+      return;
+    }
+
+    await apiRequest("/api/cart/clear", { method: "DELETE" });
+    for (const item of items) {
+      const cartResponse = await apiRequest("/api/cart/items", {
+        method: "POST",
+        body: JSON.stringify({ productId: item.id, quantity: item.quantity }),
+      });
+
+      if (!cartResponse.ok) {
+        setNotice(cartResponse.message || "Unable to sync cart. Please sign in and try again.");
+        return;
+      }
+    }
+
+    const orderResponse = await apiRequest<{ id: string }>("/api/orders", {
+      method: "POST",
+      body: JSON.stringify({ notes: "Website checkout" }),
+    });
+
+    if (!orderResponse.ok || !orderResponse.data) {
+      setNotice(orderResponse.message || "Unable to create order. Please try again.");
+      return;
+    }
+
+    const paymentResponse = await apiRequest<{ authorization_url?: string }>(
+      "/api/payments/paystack/initialize",
+      {
+        method: "POST",
+        body: JSON.stringify({ orderId: orderResponse.data.id }),
+      },
+    );
+
+    if (paymentResponse.ok && paymentResponse.data?.authorization_url) {
+      window.location.href = paymentResponse.data.authorization_url;
+      return;
+    }
+
+    setNotice(paymentResponse.message || "Unable to initialize Paystack payment.");
   }
 
   return (
@@ -96,12 +147,12 @@ export default function CheckoutPage() {
           <p className={styles.eyebrow}>Checkout</p>
           <h1 className={styles.headline}>Review cart and create order.</h1>
           <p className={styles.lead}>
-            This currently simulates a successful Paystack payment and creates a
-            paid order. Real Paystack redirect will plug into this same button.
+            Pay securely in NGN. When the production API is configured, this
+            button creates an order and redirects to Paystack.
           </p>
           {notice ? <p className={styles.successText}>{notice}</p> : null}
           <button className={styles.button} onClick={placeOrder} type="button">
-            Pay with Paystack test mode
+            Pay with Paystack
           </button>
         </div>
 

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
+import { apiConfigured, apiRequest, clearAccessToken } from "../lib/api";
 import {
   currentUser,
   formatNaira,
@@ -31,13 +32,125 @@ const emptyProduct = {
   includes: ["Digital file", "Usage guide"],
 };
 
+function normalizeOrderStatus(status: string): AppState["orders"][number]["status"] {
+  if (status === "FULFILLED" || status === "COMPLETED") return "FULFILLED";
+  if (status === "PAID" || status === "APPROVED") return "PAID";
+  return "PENDING";
+}
+
+function mapApiProduct(product: any): Product {
+  return {
+    id: product.id,
+    slug: product.slug,
+    name: product.name,
+    category: product.category?.name || product.categoryName || "General",
+    price: Number(product.price),
+    oldPrice: product.comparePrice ? Number(product.comparePrice) : undefined,
+    rating: Number(product.rating || 5),
+    sales: Number(product.sales || 0),
+    image: product.images?.[0] || product.image || emptyProduct.image,
+    badge: product.featured ? "Featured" : "Verified",
+    description: product.description || product.shortDesc || "",
+    delivery: product.metadata?.delivery || "Instant download",
+    includes: product.metadata?.includes || ["Digital file"],
+  };
+}
+
 export default function AdminPage() {
   const [state, setState] = useState<AppState | null>(null);
   const [productForm, setProductForm] = useState<Product>(emptyProduct);
   const [categoryName, setCategoryName] = useState("");
 
   useEffect(() => {
-    setState(loadState());
+    let active = true;
+
+    async function hydrate() {
+      const next = loadState();
+
+      if (apiConfigured()) {
+        const [meResponse, productsResponse, categoriesResponse, ordersResponse, usersResponse] = await Promise.all([
+          apiRequest<any>("/api/auth/me"),
+          apiRequest<any[]>("/api/products?limit=100"),
+          apiRequest<Array<{ id: string; name: string; slug: string; description?: string }>>(
+            "/api/products/categories",
+          ),
+          apiRequest<any[]>("/api/admin/orders?limit=50"),
+          apiRequest<any[]>("/api/admin/users?limit=50"),
+        ]);
+
+        if (meResponse.ok && meResponse.data) {
+          const user = meResponse.data;
+          const normalized = {
+            id: user.id,
+            email: user.email,
+            password: "",
+            firstName: user.firstName,
+            lastName: user.lastName,
+            phone: user.phoneNumber || "",
+            role: user.role === "CUSTOMER" ? "CUSTOMER" as const : "ADMIN" as const,
+            status: "ACTIVE" as const,
+          };
+          const existingIndex = next.users.findIndex((item) => item.id === user.id);
+          if (existingIndex >= 0) {
+            next.users[existingIndex] = normalized;
+          } else {
+            next.users.push(normalized);
+          }
+          next.currentUserId = user.id;
+        }
+
+        if (productsResponse.ok && productsResponse.data) {
+          next.products = productsResponse.data.map(mapApiProduct);
+        }
+
+        if (categoriesResponse.ok && categoriesResponse.data) {
+          next.categories = categoriesResponse.data.map((category) => ({
+            id: category.id,
+            name: category.name,
+            slug: category.slug,
+            description: category.description || `${category.name} products.`,
+          }));
+        }
+
+        if (ordersResponse.ok && ordersResponse.data) {
+          next.orders = ordersResponse.data.map((order: any) => ({
+            id: order.id,
+            userId: order.userId,
+            total: Number(order.total),
+            status: normalizeOrderStatus(order.status),
+            createdAt: order.createdAt,
+            items: (order.items || []).map((item: any) => ({
+              productId: item.productId,
+              name: item.productName || item.name || "Product",
+              price: Number(item.price),
+              quantity: item.quantity,
+            })),
+          }));
+        }
+
+        if (usersResponse.ok && usersResponse.data) {
+          const adminUsers = next.users.filter((user) => user.role === "ADMIN");
+          const customers = usersResponse.data.map((user: any) => ({
+            id: user.id,
+            email: user.email,
+            password: "",
+            firstName: user.firstName,
+            lastName: user.lastName,
+            phone: user.phoneNumber || "",
+            role: "CUSTOMER" as const,
+            status: user.status === "ACTIVE" ? "ACTIVE" as const : "SUSPENDED" as const,
+          }));
+          next.users = [...adminUsers, ...customers];
+        }
+      }
+
+      if (active) setState(next);
+    }
+
+    hydrate();
+    return () => {
+      active = false;
+    };
   }, []);
 
   const user = state ? currentUser(state) : null;
@@ -52,6 +165,7 @@ export default function AdminPage() {
     const next = loadState();
     next.currentUserId = null;
     persist(next);
+    clearAccessToken();
     window.location.href = "/login";
   }
 
@@ -66,7 +180,7 @@ export default function AdminPage() {
     persist(next);
   }
 
-  function saveProduct(event: FormEvent<HTMLFormElement>) {
+  async function saveProduct(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const next = loadState();
     const product: Product = {
@@ -79,6 +193,35 @@ export default function AdminPage() {
       sales: Number(productForm.sales),
       includes: productForm.includes.length ? productForm.includes : ["Digital file"],
     };
+
+    if (apiConfigured()) {
+      const category = next.categories.find((item) => item.name === product.category);
+      const response = await apiRequest<any>(
+        productForm.id ? `/api/admin/products/${productForm.id}` : "/api/admin/products",
+        {
+          method: productForm.id ? "PUT" : "POST",
+          body: JSON.stringify({
+            name: product.name,
+            description: product.description,
+            shortDesc: product.description.slice(0, 160),
+            price: product.price,
+            comparePrice: product.oldPrice,
+            categoryId: category?.id,
+            images: [product.image],
+            stock: 9999,
+            status: "ACTIVE",
+            featured: product.badge === "Featured",
+            tags: [product.category],
+            metadata: { delivery: product.delivery, includes: product.includes },
+          }),
+        },
+      );
+
+      if (response.ok && response.data) {
+        Object.assign(product, mapApiProduct(response.data));
+      }
+    }
+
     const existingIndex = next.products.findIndex((item) => item.id === product.id);
     if (existingIndex >= 0) {
       next.products[existingIndex] = product;
@@ -94,7 +237,11 @@ export default function AdminPage() {
     window.location.hash = "product-form";
   }
 
-  function deleteProduct(productId: string) {
+  async function deleteProduct(productId: string) {
+    if (apiConfigured()) {
+      await apiRequest(`/api/admin/products/${productId}`, { method: "DELETE" });
+    }
+
     const next = loadState();
     next.products = next.products.filter((product) => product.id !== productId);
     delete next.cart[productId];
@@ -129,8 +276,17 @@ export default function AdminPage() {
     persist(next);
   }
 
-  function updateUserStatus(userId: string) {
+  async function updateUserStatus(userId: string) {
     const next = loadState();
+    const user = next.users.find((item) => item.id === userId);
+    const shouldSuspend = user?.status === "ACTIVE";
+
+    if (apiConfigured() && user?.role === "CUSTOMER") {
+      await apiRequest(`/api/admin/users/${userId}/${shouldSuspend ? "suspend" : "activate"}`, {
+        method: "PUT",
+      });
+    }
+
     next.users = next.users.map((item) =>
       item.id === userId
         ? { ...item, status: item.status === "ACTIVE" ? "SUSPENDED" : "ACTIVE" }
@@ -139,7 +295,17 @@ export default function AdminPage() {
     persist(next);
   }
 
-  function updateOrderStatus(orderId: string, status: AppState["orders"][number]["status"]) {
+  async function updateOrderStatus(orderId: string, status: AppState["orders"][number]["status"]) {
+    if (apiConfigured()) {
+      const action = status === "FULFILLED" ? "fulfill" : status === "PAID" ? "approve" : "";
+      if (action) {
+        await apiRequest(`/api/admin/orders/${orderId}/${action}`, {
+          method: "PUT",
+          body: JSON.stringify({ notes: "Updated from admin dashboard" }),
+        });
+      }
+    }
+
     const next = loadState();
     next.orders = next.orders.map((order) => order.id === orderId ? { ...order, status } : order);
     persist(next);
@@ -167,7 +333,7 @@ export default function AdminPage() {
       {!isAdmin ? (
         <section className={styles.card}>
           <h1 className={styles.headline}>Admin login required.</h1>
-          <p className={styles.lead}>Use admin@omoiyaexchange.com / Admin@12345.</p>
+          <p className={styles.lead}>Sign in with an administrator account to manage products, orders, users, and brand settings.</p>
           <Link className={styles.button} href="/login">Go to login</Link>
         </section>
       ) : (
@@ -243,7 +409,7 @@ export default function AdminPage() {
               </form>
             </div>
             <aside className={styles.card}>
-              <span className={styles.badge}>Reset demo</span>
+              <span className={styles.badge}>Restore defaults</span>
               <p className={styles.lead}>Restore seeded products, users, categories, and brand settings.</p>
               <button className={styles.ghostButton} onClick={() => setState(resetState())} type="button">Reset local app data</button>
             </aside>
