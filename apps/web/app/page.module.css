@@ -306,6 +306,30 @@
   border-color: var(--blue);
 }
 
+.filterGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 240px));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.filterGrid label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.filterGrid select {
+  min-height: 44px;
+  padding: 0 12px;
+  color: var(--foreground);
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
 .productGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -389,6 +413,21 @@
   border-radius: 999px;
   font-size: 12px;
   font-weight: 800;
+}
+
+.availabilityStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.availabilityStrip span {
+  padding: 7px 10px;
+  color: var(--blue);
+  background: var(--panel-strong);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 850;
 }
 
 .productFooter {
@@ -743,6 +782,7 @@
   .checkoutSection,
   .workflowGrid,
   .sectionHeader,
+  .filterGrid,
   .steps {
     grid-template-columns: 1fr;
   }

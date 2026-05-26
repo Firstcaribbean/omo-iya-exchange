@@ -176,7 +176,7 @@ export default function DashboardPage() {
 
           <div className={styles.panel} id="overview">
             <p className={styles.eyebrow}>Welcome back</p>
-            <h1 className={styles.headline}>Your digital products hub.</h1>
+            <h1 className={styles.headline}>Your service fulfillment hub.</h1>
             <div className={styles.stats}>
               <div className={styles.stat}>
                 <span>Wallet balance</span>
@@ -199,7 +199,7 @@ export default function DashboardPage() {
                   <th>Order</th>
                   <th>Total</th>
                   <th>Status</th>
-                  <th>Products</th>
+                  <th>Services</th>
                 </tr>
               </thead>
               <tbody>

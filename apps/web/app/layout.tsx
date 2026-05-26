@@ -12,9 +12,9 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Omo Iya Exchange | Secure Digital Marketplace",
+  title: "Omo Iya Exchange | Regional Onboarding Services",
   description:
-    "Buy verified digital products in Nigeria with NGN pricing and secure Paystack checkout.",
+    "Order compliant onboarding services by region with NGN pricing, inventory availability, and secure Paystack checkout.",
 };
 
 export default function RootLayout({

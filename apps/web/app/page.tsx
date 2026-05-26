@@ -2,11 +2,13 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { categories, formatNaira, products, type Product } from "./market-data";
+import { categories, countries, formatNaira, products, regions, type Product } from "./market-data";
 import styles from "./page.module.css";
 
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState("All");
+  const [activeRegion, setActiveRegion] = useState("All");
+  const [activeCountry, setActiveCountry] = useState("All");
   const [query, setQuery] = useState("");
   const [cart, setCart] = useState<Record<string, number>>({});
 
@@ -16,15 +18,19 @@ export default function Home() {
     return products.filter((product) => {
       const matchesCategory =
         activeCategory === "All" || product.category === activeCategory;
+      const matchesRegion = activeRegion === "All" || product.region === activeRegion;
+      const matchesCountry = activeCountry === "All" || product.country === activeCountry;
       const matchesSearch =
         search.length === 0 ||
         product.name.toLowerCase().includes(search) ||
         product.description.toLowerCase().includes(search) ||
-        product.category.toLowerCase().includes(search);
+        product.category.toLowerCase().includes(search) ||
+        product.region.toLowerCase().includes(search) ||
+        product.country.toLowerCase().includes(search);
 
-      return matchesCategory && matchesSearch;
+      return matchesCategory && matchesRegion && matchesCountry && matchesSearch;
     });
-  }, [activeCategory, query]);
+  }, [activeCategory, activeCountry, activeRegion, query]);
 
   const cartItems = useMemo(
     () =>
@@ -82,7 +88,7 @@ export default function Home() {
 
         <nav className={styles.navLinks} aria-label="Main navigation">
           <a href="#marketplace">Marketplace</a>
-          <Link href="/marketplace">All products</Link>
+          <Link href="/marketplace">All services</Link>
           <a href="#checkout">Checkout</a>
           <Link href="/login">Login</Link>
           <Link href="/register">Create account</Link>
@@ -107,12 +113,13 @@ export default function Home() {
           <p className={styles.eyebrow}>Nigeria optimized marketplace</p>
           <h1>Omo Iya Exchange</h1>
           <p>
-            Buy verified digital products with clear NGN pricing, instant
-            delivery, and a secure Paystack-ready checkout flow.
+            Order compliant account setup, WhatsApp Business onboarding, SIM
+            registration assistance, and regional launch support with clear NGN
+            pricing and inventory availability.
           </p>
           <div className={styles.heroActions}>
             <a className={styles.primaryButton} href="#marketplace">
-              Browse products
+              Browse services
             </a>
             <Link className={styles.secondaryButton} href="/login">
               Sign in
@@ -127,7 +134,7 @@ export default function Home() {
       <section className={styles.metrics} aria-label="Marketplace highlights">
         <div>
           <strong>980+</strong>
-          <span>digital deliveries</span>
+          <span>service completions</span>
         </div>
         <div>
           <strong>NGN</strong>
@@ -135,7 +142,7 @@ export default function Home() {
         </div>
         <div>
           <strong>4.8/5</strong>
-          <span>average product rating</span>
+          <span>average service rating</span>
         </div>
         <div>
           <strong>Paystack</strong>
@@ -147,14 +154,14 @@ export default function Home() {
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.eyebrow}>Marketplace</p>
-            <h2>Verified digital products</h2>
+            <h2>Verified onboarding services</h2>
           </div>
           <label className={styles.searchBox}>
             <span>Search</span>
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search templates, marketing, business..."
+              placeholder="Search country, region, WhatsApp, SIM..."
             />
           </label>
         </div>
@@ -171,6 +178,24 @@ export default function Home() {
             </button>
           ))}
         </div>
+        <div className={styles.filterGrid} aria-label="Region and country filters">
+          <label>
+            Region
+            <select value={activeRegion} onChange={(event) => setActiveRegion(event.target.value)}>
+              {regions.map((region) => (
+                <option key={region}>{region}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Country
+            <select value={activeCountry} onChange={(event) => setActiveCountry(event.target.value)}>
+              {countries.map((country) => (
+                <option key={country}>{country}</option>
+              ))}
+            </select>
+          </label>
+        </div>
 
         <div className={styles.productGrid}>
           {filteredProducts.map((product) => (
@@ -181,13 +206,17 @@ export default function Home() {
               </Link>
               <div className={styles.productBody}>
                 <div className={styles.productMeta}>
-                  <span>{product.category}</span>
-                  <span>{product.rating.toFixed(1)} rating</span>
+                  <span>{product.country}</span>
+                  <span>{product.region}</span>
                 </div>
                 <h3>
                   <Link href={`/products/${product.slug}`}>{product.name}</Link>
                 </h3>
                 <p>{product.description}</p>
+                <div className={styles.availabilityStrip}>
+                  <span>{product.availability} available</span>
+                  <span>{product.fulfillmentWindow}</span>
+                </div>
                 <div className={styles.delivery}>{product.delivery}</div>
                 <div className={styles.productFooter}>
                   <div className={styles.priceBlock}>
@@ -211,14 +240,15 @@ export default function Home() {
           <p className={styles.eyebrow}>Checkout</p>
           <h2>Cart and Paystack handoff</h2>
           <p>
-            Customer accounts, backend cart sync, order creation, and Paystack
-            handoff are prepared for the production API connection.
+            Buyers select a region-specific service, submit the required
+            information after payment, and track fulfillment from their
+            dashboard.
           </p>
           <div className={styles.steps}>
             <span>1. Review cart</span>
             <span>2. Create order</span>
             <span>3. Pay with Paystack</span>
-            <span>4. Unlock download</span>
+            <span>4. Receive handover</span>
           </div>
         </div>
 
@@ -238,7 +268,7 @@ export default function Home() {
           {cartItems.length === 0 ? (
             <div className={styles.emptyCart}>
               <strong>Your cart is waiting.</strong>
-              <span>Add a product from the marketplace to preview checkout.</span>
+              <span>Add a service from the marketplace to preview checkout.</span>
             </div>
           ) : (
             <div className={styles.cartItems}>
@@ -287,8 +317,8 @@ export default function Home() {
           <span className={styles.panelLabel}>Customer dashboard</span>
           <h2>Purchases, wallet, support, and notifications.</h2>
           <p>
-            Buyers will be able to view their digital products, track wallet
-            transactions, open tickets, and manage account security.
+            Buyers will be able to view orders, track fulfillment, open tickets,
+            and manage account security.
           </p>
           <div className={styles.miniStats}>
             <span>Wallet balance</span>
@@ -300,10 +330,10 @@ export default function Home() {
         </article>
         <article id="admin">
           <span className={styles.panelLabel}>Admin operations</span>
-          <h2>Products, orders, users, fulfillment, and tickets.</h2>
+          <h2>Services, orders, users, fulfillment, and tickets.</h2>
           <p>
             The admin panel will connect to the existing backend services for
-            catalog management, order approval, and product delivery.
+            service catalog management, order approval, and fulfillment.
           </p>
           <div className={styles.miniStats}>
             <span>Today revenue</span>

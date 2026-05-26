@@ -20,7 +20,11 @@ const emptyProduct = {
   id: "",
   slug: "",
   name: "",
-  category: "Design",
+  category: "WhatsApp Business Setup",
+  region: "West Africa",
+  country: "Nigeria",
+  availability: 0,
+  fulfillmentWindow: "24-48 hours",
   price: 0,
   oldPrice: undefined as number | undefined,
   rating: 5,
@@ -28,8 +32,8 @@ const emptyProduct = {
   image: "https://images.unsplash.com/photo-1611224923853-80b023f02d71?auto=format&fit=crop&w=900&q=80",
   badge: "New",
   description: "",
-  delivery: "Instant download",
-  includes: ["Digital file", "Usage guide"],
+  delivery: "Managed setup",
+  includes: ["Onboarding support", "Handover checklist"],
 };
 
 function normalizeOrderStatus(status: string): AppState["orders"][number]["status"] {
@@ -44,6 +48,10 @@ function mapApiProduct(product: any): Product {
     slug: product.slug,
     name: product.name,
     category: product.category?.name || product.categoryName || "General",
+    region: product.metadata?.region || product.region || "Global",
+    country: product.metadata?.country || product.country || "Multi-country",
+    availability: Number(product.stock ?? product.availability ?? 0),
+    fulfillmentWindow: product.metadata?.fulfillmentWindow || product.fulfillmentWindow || "24-72 hours",
     price: Number(product.price),
     oldPrice: product.comparePrice ? Number(product.comparePrice) : undefined,
     rating: Number(product.rating || 5),
@@ -51,8 +59,8 @@ function mapApiProduct(product: any): Product {
     image: product.images?.[0] || product.image || emptyProduct.image,
     badge: product.featured ? "Featured" : "Verified",
     description: product.description || product.shortDesc || "",
-    delivery: product.metadata?.delivery || "Instant download",
-    includes: product.metadata?.includes || ["Digital file"],
+    delivery: product.metadata?.delivery || "Managed setup",
+    includes: product.metadata?.includes || ["Onboarding support"],
   };
 }
 
@@ -108,7 +116,7 @@ export default function AdminPage() {
             id: category.id,
             name: category.name,
             slug: category.slug,
-            description: category.description || `${category.name} products.`,
+            description: category.description || `${category.name} services.`,
           }));
         }
 
@@ -121,7 +129,7 @@ export default function AdminPage() {
             createdAt: order.createdAt,
             items: (order.items || []).map((item: any) => ({
               productId: item.productId,
-              name: item.productName || item.name || "Product",
+              name: item.productName || item.name || "Service",
               price: Number(item.price),
               quantity: item.quantity,
             })),
@@ -189,9 +197,10 @@ export default function AdminPage() {
       slug: slugify(productForm.name),
       price: Number(productForm.price),
       oldPrice: productForm.oldPrice ? Number(productForm.oldPrice) : undefined,
+      availability: Number(productForm.availability),
       rating: Number(productForm.rating),
       sales: Number(productForm.sales),
-      includes: productForm.includes.length ? productForm.includes : ["Digital file"],
+      includes: productForm.includes.length ? productForm.includes : ["Onboarding support"],
     };
 
     if (apiConfigured()) {
@@ -208,11 +217,17 @@ export default function AdminPage() {
             comparePrice: product.oldPrice,
             categoryId: category?.id,
             images: [product.image],
-            stock: 9999,
+            stock: product.availability,
             status: "ACTIVE",
             featured: product.badge === "Featured",
             tags: [product.category],
-            metadata: { delivery: product.delivery, includes: product.includes },
+            metadata: {
+              delivery: product.delivery,
+              includes: product.includes,
+              region: product.region,
+              country: product.country,
+              fulfillmentWindow: product.fulfillmentWindow,
+            },
           }),
         },
       );
@@ -229,7 +244,7 @@ export default function AdminPage() {
       next.products.unshift(product);
     }
     persist(next);
-    setProductForm({ ...emptyProduct, category: next.categories[0]?.name ?? "Design" });
+    setProductForm({ ...emptyProduct, category: next.categories[0]?.name ?? "WhatsApp Business Setup" });
   }
 
   function editProduct(product: Product) {
@@ -256,7 +271,7 @@ export default function AdminPage() {
       id: crypto.randomUUID(),
       name: categoryName.trim(),
       slug: slugify(categoryName),
-      description: `${categoryName.trim()} products.`,
+      description: `${categoryName.trim()} services.`,
     };
     next.categories.push(category);
     persist(next);
@@ -333,28 +348,32 @@ export default function AdminPage() {
       {!isAdmin ? (
         <section className={styles.card}>
           <h1 className={styles.headline}>Admin login required.</h1>
-          <p className={styles.lead}>Sign in with an administrator account to manage products, orders, users, and brand settings.</p>
+          <p className={styles.lead}>Sign in with an administrator account to manage services, inventory, orders, users, and brand settings.</p>
           <Link className={styles.button} href="/login">Go to login</Link>
         </section>
       ) : (
         <>
           <section className={styles.adminGrid}>
-            <div className={styles.card}><span className={styles.badge}>Products</span><h2>{state.products.length}</h2></div>
+            <div className={styles.card}><span className={styles.badge}>Services</span><h2>{state.products.length}</h2></div>
             <div className={styles.card}><span className={styles.badge}>Orders</span><h2>{state.orders.length}</h2></div>
             <div className={styles.card}><span className={styles.badge}>Users</span><h2>{state.users.length}</h2></div>
           </section>
 
           <section className={styles.twoColumn}>
             <div className={styles.panel} id="product-form">
-              <p className={styles.eyebrow}>Product management</p>
-              <h1 className={styles.headline}>{productForm.id ? "Edit product" : "Add product"}</h1>
+              <p className={styles.eyebrow}>Service management</p>
+              <h1 className={styles.headline}>{productForm.id ? "Edit service" : "Add service"}</h1>
               <form className={styles.form} onSubmit={saveProduct}>
                 <label>Name<input required value={productForm.name} onChange={(event) => setProductForm((p) => ({ ...p, name: event.target.value }))} /></label>
                 <label>Category<select value={productForm.category} onChange={(event) => setProductForm((p) => ({ ...p, category: event.target.value }))}>{state.categories.map((item) => <option key={item.id}>{item.name}</option>)}</select></label>
+                <label>Region<input required value={productForm.region} onChange={(event) => setProductForm((p) => ({ ...p, region: event.target.value }))} /></label>
+                <label>Country<input required value={productForm.country} onChange={(event) => setProductForm((p) => ({ ...p, country: event.target.value }))} /></label>
+                <label>Availability<input required min="0" type="number" value={productForm.availability} onChange={(event) => setProductForm((p) => ({ ...p, availability: Number(event.target.value) }))} /></label>
+                <label>Fulfillment window<input required value={productForm.fulfillmentWindow} onChange={(event) => setProductForm((p) => ({ ...p, fulfillmentWindow: event.target.value }))} /></label>
                 <label>Price<input required type="number" value={productForm.price} onChange={(event) => setProductForm((p) => ({ ...p, price: Number(event.target.value) }))} /></label>
                 <label>Image URL<input required value={productForm.image} onChange={(event) => setProductForm((p) => ({ ...p, image: event.target.value }))} /></label>
                 <label>Description<textarea required value={productForm.description} onChange={(event) => setProductForm((p) => ({ ...p, description: event.target.value }))} /></label>
-                <button className={styles.button} type="submit">Save product</button>
+                <button className={styles.button} type="submit">Save service</button>
               </form>
             </div>
 
@@ -376,14 +395,16 @@ export default function AdminPage() {
           </section>
 
           <section className={styles.panel}>
-            <p className={styles.eyebrow}>Catalog</p>
+            <p className={styles.eyebrow}>Service catalog</p>
             <table className={styles.table}>
-              <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Actions</th></tr></thead>
+              <thead><tr><th>Service</th><th>Region</th><th>Country</th><th>Available</th><th>Price</th><th>Actions</th></tr></thead>
               <tbody>
                 {state.products.map((product) => (
                   <tr key={product.id}>
                     <td>{product.name}</td>
-                    <td>{product.category}</td>
+                    <td>{product.region}</td>
+                    <td>{product.country}</td>
+                    <td>{product.availability}</td>
                     <td>{formatNaira(product.price)}</td>
                     <td>
                       <div className={styles.inlineActions}>
@@ -410,7 +431,7 @@ export default function AdminPage() {
             </div>
             <aside className={styles.card}>
               <span className={styles.badge}>Restore defaults</span>
-              <p className={styles.lead}>Restore seeded products, users, categories, and brand settings.</p>
+              <p className={styles.lead}>Restore seeded services, users, categories, and brand settings.</p>
               <button className={styles.ghostButton} onClick={() => setState(resetState())} type="button">Reset local app data</button>
             </aside>
           </section>

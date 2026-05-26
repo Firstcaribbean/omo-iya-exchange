@@ -61,7 +61,7 @@ export default function CheckoutPage() {
       .filter(Boolean) as Array<{ productId: string; quantity: number; name: string; price: number }>;
 
     if (orderItems.length === 0) {
-      setNotice("Add at least one product before checkout.");
+      setNotice("Add at least one service before checkout.");
       return;
     }
 
@@ -82,7 +82,7 @@ export default function CheckoutPage() {
 
   async function placeApiOrder() {
     if (items.length === 0) {
-      setNotice("Add at least one product before checkout.");
+      setNotice("Add at least one service before checkout.");
       return;
     }
 
@@ -148,7 +148,7 @@ export default function CheckoutPage() {
           <h1 className={styles.headline}>Review cart and create order.</h1>
           <p className={styles.lead}>
             Pay securely in NGN. When the production API is configured, this
-            button creates an order and redirects to Paystack.
+            button creates a service order and redirects to Paystack.
           </p>
           {notice ? <p className={styles.successText}>{notice}</p> : null}
           <button className={styles.button} onClick={placeOrder} type="button">

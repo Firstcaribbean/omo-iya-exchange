@@ -13,6 +13,10 @@ function mapApiProduct(product: any): Product {
     slug: product.slug,
     name: product.name,
     category: product.category?.name || product.categoryName || "General",
+    region: product.metadata?.region || product.region || "Global",
+    country: product.metadata?.country || product.country || "Multi-country",
+    availability: Number(product.stock ?? product.availability ?? 0),
+    fulfillmentWindow: product.metadata?.fulfillmentWindow || product.fulfillmentWindow || "24-72 hours",
     price: Number(product.price),
     oldPrice: product.comparePrice ? Number(product.comparePrice) : undefined,
     rating: Number(product.rating || 5),
@@ -20,14 +24,16 @@ function mapApiProduct(product: any): Product {
     image: product.images?.[0] || product.image || "https://images.unsplash.com/photo-1611224923853-80b023f02d71?auto=format&fit=crop&w=900&q=80",
     badge: product.featured ? "Featured" : "Verified",
     description: product.description || product.shortDesc || "",
-    delivery: product.metadata?.delivery || "Instant download",
-    includes: product.metadata?.includes || ["Digital file"],
+    delivery: product.metadata?.delivery || "Managed setup",
+    includes: product.metadata?.includes || ["Onboarding support"],
   };
 }
 
 export default function MarketplacePage() {
   const [state, setState] = useState<AppState | null>(null);
   const [category, setCategory] = useState("All");
+  const [region, setRegion] = useState("All");
+  const [country, setCountry] = useState("All");
   const [query, setQuery] = useState("");
 
   useEffect(() => {
@@ -52,7 +58,7 @@ export default function MarketplacePage() {
             id: category.id,
             name: category.name,
             slug: category.slug,
-            description: category.description || `${category.name} products.`,
+            description: category.description || `${category.name} services.`,
           }));
         }
       }
@@ -68,17 +74,23 @@ export default function MarketplacePage() {
 
   const products = state?.products ?? [];
   const categories = ["All", ...(state?.categories.map((item) => item.name) ?? [])];
+  const regions = ["All", ...Array.from(new Set(products.map((product) => product.region)))];
+  const countries = ["All", ...Array.from(new Set(products.map((product) => product.country)))];
   const filtered = useMemo(() => {
     const search = query.toLowerCase().trim();
     return products.filter((product) => {
       const matchesCategory = category === "All" || product.category === category;
+      const matchesRegion = region === "All" || product.region === region;
+      const matchesCountry = country === "All" || product.country === country;
       const matchesSearch =
         !search ||
         product.name.toLowerCase().includes(search) ||
-        product.description.toLowerCase().includes(search);
-      return matchesCategory && matchesSearch;
+        product.description.toLowerCase().includes(search) ||
+        product.region.toLowerCase().includes(search) ||
+        product.country.toLowerCase().includes(search);
+      return matchesCategory && matchesRegion && matchesCountry && matchesSearch;
     });
-  }, [category, products, query]);
+  }, [category, country, products, query, region]);
 
   function addToCart(productId: string) {
     const next = loadState();
@@ -109,15 +121,27 @@ export default function MarketplacePage() {
 
       <section className={styles.panel}>
         <p className={styles.eyebrow}>Marketplace</p>
-        <h1 className={styles.headline}>Browse verified digital products.</h1>
+        <h1 className={styles.headline}>Browse verified onboarding services.</h1>
         <div className={styles.toolbar}>
           <input
-            placeholder="Search products"
+            placeholder="Search service, country, or region"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
           <select value={category} onChange={(event) => setCategory(event.target.value)}>
             {categories.map((item) => (
+              <option key={item}>{item}</option>
+            ))}
+          </select>
+        </div>
+        <div className={styles.toolbar}>
+          <select value={region} onChange={(event) => setRegion(event.target.value)}>
+            {regions.map((item) => (
+              <option key={item}>{item}</option>
+            ))}
+          </select>
+          <select value={country} onChange={(event) => setCountry(event.target.value)}>
+            {countries.map((item) => (
               <option key={item}>{item}</option>
             ))}
           </select>
@@ -130,6 +154,12 @@ export default function MarketplacePage() {
                 <span className={styles.badge}>{product.category}</span>
                 <h2>{product.name}</h2>
                 <p className={styles.finePrint}>{product.description}</p>
+                <div className={styles.metaGrid}>
+                  <span>{product.country}</span>
+                  <span>{product.region}</span>
+                  <span>{product.availability} available</span>
+                  <span>{product.fulfillmentWindow}</span>
+                </div>
                 <strong>{formatNaira(product.price)}</strong>
               </div>
               <div className={styles.rowActions}>

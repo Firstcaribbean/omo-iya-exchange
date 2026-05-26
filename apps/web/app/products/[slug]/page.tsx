@@ -49,13 +49,18 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <strong>{product.category}</strong>
             </div>
             <div className={styles.stat}>
-              <span>Rating</span>
-              <strong>{product.rating.toFixed(1)}</strong>
+              <span>Country</span>
+              <strong>{product.country}</strong>
             </div>
             <div className={styles.stat}>
-              <span>Delivery</span>
-              <strong>Instant</strong>
+              <span>Available</span>
+              <strong>{product.availability}</strong>
             </div>
+          </div>
+          <div className={styles.metaGrid}>
+            <span>{product.region}</span>
+            <span>{product.fulfillmentWindow}</span>
+            <span>{product.delivery}</span>
           </div>
           <div className={styles.list}>
             {product.includes.map((item) => (
@@ -66,7 +71,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             ))}
           </div>
           <Link className={styles.button} href="/checkout">
-            Buy with Paystack
+            Order with Paystack
           </Link>
         </aside>
       </section>

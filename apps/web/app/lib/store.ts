@@ -61,7 +61,7 @@ export type AppState = {
   tickets: Ticket[];
 };
 
-const STORAGE_KEY = "omo-iya-exchange-state-v1";
+const STORAGE_KEY = "omo-iya-exchange-state-v2";
 
 export const seededCredentials = {
   admin: { email: "admin@omoiyaexchange.com", password: "Admin@12345" },
@@ -82,7 +82,7 @@ export function createDefaultState(): AppState {
       id: crypto.randomUUID(),
       name,
       slug: slugify(name),
-      description: `${name} digital products and resources.`,
+      description: `${name} services and onboarding resources.`,
     }),
   );
 
@@ -117,9 +117,9 @@ export function createDefaultState(): AppState {
       tagline: "Secure Digital Marketplace",
       supportEmail: "support@omoiyaexchange.com",
       whatsapp: "+234 800 000 0000",
-      heroTitle: "Buy verified digital products in Nigeria.",
+      heroTitle: "Order verified onboarding services by region.",
       heroCopy:
-        "Browse digital templates, business kits, guides, and downloadable tools with NGN pricing and Paystack-ready checkout.",
+        "Browse compliant setup services with region filters, country availability, NGN pricing, and Paystack-ready checkout.",
     },
     cart: {},
     orders: [],
@@ -148,12 +148,30 @@ export function loadState(): AppState {
   }
 
   try {
-    return JSON.parse(raw) as AppState;
+    return normalizeState(JSON.parse(raw) as AppState);
   } catch {
     const state = createDefaultState();
     saveState(state);
     return state;
   }
+}
+
+function normalizeState(state: AppState): AppState {
+  state.products = state.products.map((product) => {
+    const seed = seedProducts.find((item) => item.id === product.id || item.slug === product.slug);
+
+    return {
+      ...product,
+      region: product.region || seed?.region || "Global",
+      country: product.country || seed?.country || "Multi-country",
+      availability: Number(product.availability ?? seed?.availability ?? 0),
+      fulfillmentWindow: product.fulfillmentWindow || seed?.fulfillmentWindow || "24-72 hours",
+      delivery: product.delivery || seed?.delivery || "Managed setup",
+      includes: product.includes?.length ? product.includes : seed?.includes || ["Onboarding support"],
+    };
+  });
+
+  return state;
 }
 
 export function saveState(state: AppState) {

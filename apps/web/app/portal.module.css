@@ -322,6 +322,10 @@
   margin-top: 24px;
 }
 
+.toolbar + .toolbar {
+  margin-top: 12px;
+}
+
 .productList {
   display: grid;
   gap: 14px;
@@ -355,6 +359,22 @@
   display: block;
   margin-top: 8px;
   color: var(--blue);
+}
+
+.metaGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.metaGrid span {
+  padding: 7px 10px;
+  color: var(--blue);
+  background: var(--panel-strong);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 850;
 }
 
 .rowActions,

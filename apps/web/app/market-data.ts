@@ -3,6 +3,10 @@ export type Product = {
   slug: string;
   name: string;
   category: string;
+  region: string;
+  country: string;
+  availability: number;
+  fulfillmentWindow: string;
   price: number;
   oldPrice?: number;
   rating: number;
@@ -16,106 +20,132 @@ export type Product = {
 
 export const products: Product[] = [
   {
-    id: "brand-kit",
-    slug: "business-brand-starter-kit",
-    name: "Business Brand Starter Kit",
-    category: "Design",
-    price: 18500,
-    oldPrice: 24000,
+    id: "ng-whatsapp-business-setup",
+    slug: "nigeria-whatsapp-business-number-setup",
+    name: "Nigeria WhatsApp Business Number Setup",
+    category: "WhatsApp Business Setup",
+    region: "West Africa",
+    country: "Nigeria",
+    availability: 42,
+    fulfillmentWindow: "24-48 hours",
+    price: 28500,
+    oldPrice: 34000,
     rating: 4.9,
     sales: 318,
     image:
-      "https://images.unsplash.com/photo-1611224923853-80b023f02d71?auto=format&fit=crop&w=900&q=80",
-    badge: "Best seller",
+      "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?auto=format&fit=crop&w=900&q=80",
+    badge: "High availability",
     description:
-      "Logo files, social templates, invoice sheets, and launch graphics for small Nigerian businesses.",
-    delivery: "Instant download",
-    includes: ["Logo file pack", "Canva social templates", "Invoice sheet", "Launch checklist"],
+      "Compliant WhatsApp Business onboarding for buyer-owned brands, including number registration guidance, profile setup, catalog basics, and handover support.",
+    delivery: "Managed setup",
+    includes: ["Business profile setup", "Catalog starter setup", "Number onboarding guidance", "Handover checklist"],
   },
   {
-    id: "wa-commerce",
-    slug: "whatsapp-commerce-playbook",
-    name: "WhatsApp Commerce Playbook",
-    category: "Business",
-    price: 9500,
+    id: "gh-whatsapp-business-setup",
+    slug: "ghana-whatsapp-business-number-setup",
+    name: "Ghana WhatsApp Business Number Setup",
+    category: "WhatsApp Business Setup",
+    region: "West Africa",
+    country: "Ghana",
+    availability: 18,
+    fulfillmentWindow: "24-72 hours",
+    price: 31500,
     rating: 4.8,
     sales: 204,
     image:
-      "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=900&q=80",
-    badge: "New",
+      "https://images.unsplash.com/photo-1556157382-97eda2f9e2bf?auto=format&fit=crop&w=900&q=80",
+    badge: "Limited slots",
     description:
-      "Scripts, offer templates, customer follow-up flows, and pricing sheets for chat-based sales.",
-    delivery: "PDF + editable docs",
-    includes: ["Sales scripts", "Follow-up messages", "Offer templates", "Pricing worksheet"],
+      "Region-specific WhatsApp Business setup for Ghanaian businesses, with compliance review, brand profile configuration, and buyer-controlled handover.",
+    delivery: "Managed setup",
+    includes: ["Eligibility check", "Profile configuration", "Security handover", "Support window"],
   },
   {
-    id: "excel-finance",
-    slug: "sme-finance-dashboard",
-    name: "SME Finance Dashboard",
-    category: "Templates",
-    price: 14500,
-    oldPrice: 18000,
+    id: "uk-business-account-setup",
+    slug: "uk-business-account-setup-service",
+    name: "UK Business Account Setup Service",
+    category: "Business Account Setup",
+    region: "Europe",
+    country: "United Kingdom",
+    availability: 11,
+    fulfillmentWindow: "2-4 business days",
+    price: 54000,
+    oldPrice: 62000,
     rating: 4.7,
     sales: 156,
     image:
-      "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=900&q=80",
     badge: "Verified",
     description:
-      "Track income, expenses, customers, debtors, stock, and monthly profit in one spreadsheet.",
-    delivery: "Excel + Google Sheets",
-    includes: ["Income tracker", "Expense log", "Profit dashboard", "Stock worksheet"],
+      "Guided setup for buyer-owned business accounts using buyer-provided details, with compliance checks, recovery setup, and onboarding documentation.",
+    delivery: "Guided onboarding",
+    includes: ["Requirement review", "Account setup session", "Recovery configuration", "Completion proof"],
   },
   {
-    id: "ad-pack",
-    slug: "meta-ads-creative-pack",
-    name: "Meta Ads Creative Pack",
-    category: "Marketing",
-    price: 22000,
+    id: "us-brand-page-setup",
+    slug: "us-brand-page-setup-package",
+    name: "US Brand Page Setup Package",
+    category: "Business Account Setup",
+    region: "North America",
+    country: "United States",
+    availability: 25,
+    fulfillmentWindow: "1-3 business days",
+    price: 48000,
     rating: 4.9,
     sales: 91,
     image:
-      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=900&q=80",
+      "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=900&q=80",
     badge: "Premium",
     description:
-      "Ready-to-edit ad concepts, captions, campaign planner, and performance reporting templates.",
-    delivery: "Canva + Docs",
-    includes: ["Ad concepts", "Caption bank", "Campaign planner", "Report template"],
+      "Business page creation and launch support for buyer-owned brands, including profile setup, starter content, permissions, and security checklist.",
+    delivery: "Managed setup",
+    includes: ["Brand profile setup", "Starter content", "Admin permission review", "Security checklist"],
   },
   {
-    id: "ebook-launch",
-    slug: "ebook-launch-system",
-    name: "Ebook Launch System",
-    category: "Education",
-    price: 12000,
+    id: "ng-sim-registration-assist",
+    slug: "nigeria-sim-registration-assistance",
+    name: "Nigeria SIM Registration Assistance",
+    category: "SIM Registration Assistance",
+    region: "West Africa",
+    country: "Nigeria",
+    availability: 64,
+    fulfillmentWindow: "Same day-48 hours",
+    price: 17500,
     rating: 4.6,
     sales: 127,
     image:
       "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80",
-    badge: "Creator pick",
+    badge: "Available",
     description:
-      "A complete launch workflow for writing, packaging, pricing, and selling a digital guide.",
-    delivery: "Workbook + templates",
-    includes: ["Launch workbook", "Sales page outline", "Email copy", "Content planner"],
+      "Provider-aligned assistance for lawful SIM onboarding where the buyer supplies required identity information and completes any mandatory verification.",
+    delivery: "Assisted onboarding",
+    includes: ["Provider availability check", "Registration guidance", "Verification reminders", "Activation support"],
   },
   {
-    id: "support-stack",
-    slug: "customer-support-response-kit",
-    name: "Customer Support Response Kit",
-    category: "Operations",
-    price: 7800,
+    id: "global-onboarding-consult",
+    slug: "global-account-onboarding-consultation",
+    name: "Global Account Onboarding Consultation",
+    category: "Compliance Consultation",
+    region: "Global",
+    country: "Multi-country",
+    availability: 9,
+    fulfillmentWindow: "Booked within 48 hours",
+    price: 22500,
     rating: 4.7,
     sales: 83,
     image:
-      "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=900&q=80",
-    badge: "Fast setup",
+      "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=900&q=80",
+    badge: "Consultation",
     description:
-      "Message macros, refund scripts, ticket categories, and escalation rules for lean teams.",
-    delivery: "Docs + CSV import",
-    includes: ["Reply macros", "Ticket categories", "Refund scripts", "Escalation rules"],
+      "Planning call for businesses that need compliant setup across regions, provider requirements, documentation, and launch workflow.",
+    delivery: "Video/phone consultation",
+    includes: ["Region planning", "Provider checklist", "Risk review", "Launch roadmap"],
   },
 ];
 
 export const categories = ["All", ...Array.from(new Set(products.map((p) => p.category)))];
+export const regions = ["All", ...Array.from(new Set(products.map((p) => p.region)))];
+export const countries = ["All", ...Array.from(new Set(products.map((p) => p.country)))];
 
 export function formatNaira(amount: number) {
   return `NGN ${amount.toLocaleString("en-NG")}`;
