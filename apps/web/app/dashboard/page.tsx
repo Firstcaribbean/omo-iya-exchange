@@ -57,6 +57,8 @@ export default function DashboardPage() {
             total: Number(order.total),
             status: order.status,
             createdAt: order.createdAt,
+            otpCode: order.otpCode || "",
+            fulfillmentNote: order.fulfillmentNote || "",
             items: (order.items || []).map((item: any) => ({
               productId: item.productId,
               name: item.productName,
@@ -73,6 +75,14 @@ export default function DashboardPage() {
             subject: ticket.subject,
             message: ticket.description,
             status: ticket.status,
+            channel: ticket.channel || "SUPPORT",
+            assignedToAgent: Boolean(ticket.assignedToAgent),
+            messages: (ticket.messages || []).map((message: any) => ({
+              id: message.id,
+              sender: message.sender || "AGENT",
+              text: message.message || message.text,
+              createdAt: message.createdAt,
+            })),
           }));
         }
       }
@@ -129,6 +139,16 @@ export default function DashboardPage() {
       subject: ticket.subject,
       message: ticket.message,
       status: "OPEN",
+      channel: "SUPPORT",
+      assignedToAgent: true,
+      messages: [
+        {
+          id: `MSG-${Date.now()}`,
+          sender: "CUSTOMER",
+          text: ticket.message,
+          createdAt: new Date().toISOString(),
+        },
+      ],
     });
     saveState(next);
     setState(next);
@@ -200,11 +220,12 @@ export default function DashboardPage() {
                   <th>Total</th>
                   <th>Status</th>
                   <th>Services</th>
+                  <th>OTP / note</th>
                 </tr>
               </thead>
               <tbody>
                 {orders.length === 0 ? (
-                  <tr><td colSpan={4}>No orders yet.</td></tr>
+                  <tr><td colSpan={5}>No orders yet.</td></tr>
                 ) : (
                   orders.map((order) => (
                     <tr key={order.id}>
@@ -212,6 +233,7 @@ export default function DashboardPage() {
                       <td>{formatNaira(order.total)}</td>
                       <td>{order.status}</td>
                       <td>{order.items.map((item) => item.name).join(", ")}</td>
+                      <td>{order.otpCode ? `OTP: ${order.otpCode}` : order.fulfillmentNote || "Pending fulfillment"}</td>
                     </tr>
                   ))
                 )}
@@ -241,7 +263,10 @@ export default function DashboardPage() {
             <div className={styles.list}>
               {tickets.map((item) => (
                 <div className={styles.listItem} key={item.id}>
-                  <strong>{item.subject}</strong>
+                  <div>
+                    <strong>{item.subject}</strong>
+                    <p className={styles.finePrint}>{(item.messages || []).map((message) => `${message.sender}: ${message.text}`).join(" / ") || item.message}</p>
+                  </div>
                   <span>{item.status}</span>
                 </div>
               ))}

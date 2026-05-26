@@ -162,6 +162,7 @@
 .form select,
 .toolbar input,
 .toolbar select,
+.table input,
 .table select {
   width: 100%;
   min-height: 46px;
@@ -184,6 +185,7 @@
 .form select:focus,
 .toolbar input:focus,
 .toolbar select:focus,
+.table input:focus,
 .table select:focus {
   border-color: var(--blue);
   box-shadow: 0 0 0 4px rgba(6, 43, 102, 0.12);

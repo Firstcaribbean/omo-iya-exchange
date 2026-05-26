@@ -26,6 +26,7 @@ function mapApiProduct(product: any): Product {
     description: product.description || product.shortDesc || "",
     delivery: product.metadata?.delivery || "Managed setup",
     includes: product.metadata?.includes || ["Onboarding support"],
+    requiresOtp: product.metadata?.requiresOtp ?? product.requiresOtp ?? false,
   };
 }
 
@@ -159,6 +160,7 @@ export default function MarketplacePage() {
                   <span>{product.region}</span>
                   <span>{product.availability} available</span>
                   <span>{product.fulfillmentWindow}</span>
+                  {product.requiresOtp ? <span>OTP required</span> : null}
                 </div>
                 <strong>{formatNaira(product.price)}</strong>
               </div>

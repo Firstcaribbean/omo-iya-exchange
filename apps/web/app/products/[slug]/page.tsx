@@ -61,6 +61,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <span>{product.region}</span>
             <span>{product.fulfillmentWindow}</span>
             <span>{product.delivery}</span>
+            {product.requiresOtp ? <span>OTP handoff required</span> : null}
           </div>
           <div className={styles.list}>
             {product.includes.map((item) => (

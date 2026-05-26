@@ -216,6 +216,7 @@ export default function Home() {
                 <div className={styles.availabilityStrip}>
                   <span>{product.availability} available</span>
                   <span>{product.fulfillmentWindow}</span>
+                  {product.requiresOtp ? <span>OTP required</span> : null}
                 </div>
                 <div className={styles.delivery}>{product.delivery}</div>
                 <div className={styles.productFooter}>

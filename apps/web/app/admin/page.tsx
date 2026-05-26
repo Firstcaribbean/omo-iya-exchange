@@ -34,6 +34,7 @@ const emptyProduct = {
   description: "",
   delivery: "Managed setup",
   includes: ["Onboarding support", "Handover checklist"],
+  requiresOtp: true,
 };
 
 function normalizeOrderStatus(status: string): AppState["orders"][number]["status"] {
@@ -61,6 +62,7 @@ function mapApiProduct(product: any): Product {
     description: product.description || product.shortDesc || "",
     delivery: product.metadata?.delivery || "Managed setup",
     includes: product.metadata?.includes || ["Onboarding support"],
+    requiresOtp: product.metadata?.requiresOtp ?? product.requiresOtp ?? false,
   };
 }
 
@@ -68,6 +70,8 @@ export default function AdminPage() {
   const [state, setState] = useState<AppState | null>(null);
   const [productForm, setProductForm] = useState<Product>(emptyProduct);
   const [categoryName, setCategoryName] = useState("");
+  const [otpDrafts, setOtpDrafts] = useState<Record<string, string>>({});
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let active = true;
@@ -227,6 +231,7 @@ export default function AdminPage() {
               region: product.region,
               country: product.country,
               fulfillmentWindow: product.fulfillmentWindow,
+              requiresOtp: product.requiresOtp,
             },
           }),
         },
@@ -332,6 +337,58 @@ export default function AdminPage() {
     persist(next);
   }
 
+  function saveOrderOtp(orderId: string) {
+    const code = otpDrafts[orderId]?.trim();
+    if (!code) return;
+
+    const next = loadState();
+    next.orders = next.orders.map((order) =>
+      order.id === orderId
+        ? {
+            ...order,
+            otpCode: code,
+            fulfillmentNote: "OTP added by admin. Customer can view it from the dashboard.",
+          }
+        : order,
+    );
+    persist(next);
+    setOtpDrafts((current) => ({ ...current, [orderId]: "" }));
+  }
+
+  async function replyToTicket(ticketId: string) {
+    const text = replyDrafts[ticketId]?.trim();
+    if (!text) return;
+
+    if (apiConfigured()) {
+      await apiRequest(`/api/support/tickets/${ticketId}/messages`, {
+        method: "POST",
+        body: JSON.stringify({ message: text }),
+      });
+    }
+
+    const next = loadState();
+    next.tickets = next.tickets.map((ticket) =>
+      ticket.id === ticketId
+        ? {
+            ...ticket,
+            status: "IN_PROGRESS",
+            assignedToAgent: true,
+            messages: [
+              ...(ticket.messages || []),
+              {
+                id: `MSG-${Date.now()}`,
+                sender: "AGENT",
+                text,
+                createdAt: new Date().toISOString(),
+              },
+            ],
+          }
+        : ticket,
+    );
+    persist(next);
+    setReplyDrafts((current) => ({ ...current, [ticketId]: "" }));
+  }
+
   if (!state) return null;
 
   return (
@@ -379,6 +436,7 @@ export default function AdminPage() {
                 <label>Price<input required type="number" value={productForm.price} onChange={(event) => setProductForm((p) => ({ ...p, price: Number(event.target.value) }))} /></label>
                 <label>Image URL<input required value={productForm.image} onChange={(event) => setProductForm((p) => ({ ...p, image: event.target.value }))} /></label>
                 <label>Description<textarea required value={productForm.description} onChange={(event) => setProductForm((p) => ({ ...p, description: event.target.value }))} /></label>
+                <label><input checked={Boolean(productForm.requiresOtp)} type="checkbox" onChange={(event) => setProductForm((p) => ({ ...p, requiresOtp: event.target.checked }))} /> Requires OTP handoff</label>
                 <button className={styles.button} type="submit">Save service</button>
               </form>
             </div>
@@ -445,8 +503,8 @@ export default function AdminPage() {
           <section className={styles.panel}>
             <p className={styles.eyebrow}>Orders and users</p>
             <table className={styles.table}>
-              <thead><tr><th>Order</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
-              <tbody>{state.orders.map((order) => <tr key={order.id}><td>{order.id}</td><td>{formatNaira(order.total)}</td><td>{order.status}</td><td><select value={order.status} onChange={(event) => updateOrderStatus(order.id, event.target.value as AppState["orders"][number]["status"])}><option>PENDING</option><option>PAID</option><option>FULFILLED</option></select></td></tr>)}</tbody>
+              <thead><tr><th>Order</th><th>Total</th><th>Status</th><th>OTP handoff</th><th>Action</th></tr></thead>
+              <tbody>{state.orders.map((order) => <tr key={order.id}><td>{order.id}</td><td>{formatNaira(order.total)}</td><td>{order.status}</td><td><input placeholder={order.otpCode || "Paste OTP"} value={otpDrafts[order.id] || ""} onChange={(event) => setOtpDrafts((current) => ({ ...current, [order.id]: event.target.value }))} /></td><td><div className={styles.inlineActions}><select value={order.status} onChange={(event) => updateOrderStatus(order.id, event.target.value as AppState["orders"][number]["status"])}><option>PENDING</option><option>PAID</option><option>FULFILLED</option></select><button onClick={() => saveOrderOtp(order.id)} type="button">Save OTP</button></div></td></tr>)}</tbody>
             </table>
             <table className={styles.table}>
               <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Action</th></tr></thead>
@@ -457,16 +515,17 @@ export default function AdminPage() {
           <section className={styles.panel}>
             <p className={styles.eyebrow}>Live chat and support</p>
             <table className={styles.table}>
-              <thead><tr><th>Ticket</th><th>Subject</th><th>Message</th><th>Status</th></tr></thead>
+              <thead><tr><th>Ticket</th><th>Subject</th><th>Conversation</th><th>Reply</th><th>Status</th></tr></thead>
               <tbody>
                 {state.tickets.length === 0 ? (
-                  <tr><td colSpan={4}>No support messages yet.</td></tr>
+                  <tr><td colSpan={5}>No support messages yet.</td></tr>
                 ) : (
                   state.tickets.map((ticket) => (
                     <tr key={ticket.id}>
                       <td>{ticket.id}</td>
                       <td>{ticket.subject}</td>
-                      <td>{ticket.message}</td>
+                      <td>{(ticket.messages || []).map((message) => `${message.sender}: ${message.text}`).join(" / ") || ticket.message}</td>
+                      <td><div className={styles.inlineActions}><input placeholder="Reply as agent" value={replyDrafts[ticket.id] || ""} onChange={(event) => setReplyDrafts((current) => ({ ...current, [ticket.id]: event.target.value }))} /><button onClick={() => replyToTicket(ticket.id)} type="button">Reply</button></div></td>
                       <td>
                         <select value={ticket.status} onChange={(event) => updateTicketStatus(ticket.id, event.target.value as AppState["tickets"][number]["status"])}>
                           <option>OPEN</option>

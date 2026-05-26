@@ -40,6 +40,15 @@ export type Order = {
   status: "PENDING" | "PAID" | "FULFILLED";
   items: Array<{ productId: string; name: string; price: number; quantity: number }>;
   createdAt: string;
+  otpCode?: string;
+  fulfillmentNote?: string;
+};
+
+export type TicketMessage = {
+  id: string;
+  sender: "CUSTOMER" | "AI" | "AGENT" | "SYSTEM";
+  text: string;
+  createdAt: string;
 };
 
 export type Ticket = {
@@ -48,6 +57,11 @@ export type Ticket = {
   subject: string;
   message: string;
   status: "OPEN" | "IN_PROGRESS" | "RESOLVED";
+  channel?: "CHAT" | "SUPPORT";
+  assignedToAgent?: boolean;
+  contactName?: string;
+  contactEmail?: string;
+  messages?: TicketMessage[];
 };
 
 export type AppState = {
@@ -127,9 +141,19 @@ export function createDefaultState(): AppState {
       {
         id: "TCK-1001",
         userId: "customer-user",
-        subject: "Need help downloading purchase",
-        message: "Please resend my download link.",
+        subject: "Need help with service fulfillment",
+        message: "Please confirm the next steps for my service order.",
         status: "OPEN",
+        channel: "SUPPORT",
+        assignedToAgent: true,
+        messages: [
+          {
+            id: "MSG-1001",
+            sender: "CUSTOMER",
+            text: "Please confirm the next steps for my service order.",
+            createdAt: new Date().toISOString(),
+          },
+        ],
       },
     ],
   };
@@ -168,8 +192,31 @@ function normalizeState(state: AppState): AppState {
       fulfillmentWindow: product.fulfillmentWindow || seed?.fulfillmentWindow || "24-72 hours",
       delivery: product.delivery || seed?.delivery || "Managed setup",
       includes: product.includes?.length ? product.includes : seed?.includes || ["Onboarding support"],
+      requiresOtp: product.requiresOtp ?? seed?.requiresOtp ?? false,
     };
   });
+
+  state.orders = state.orders.map((order) => ({
+    ...order,
+    otpCode: order.otpCode || "",
+    fulfillmentNote: order.fulfillmentNote || "",
+  }));
+
+  state.tickets = state.tickets.map((ticket) => ({
+    ...ticket,
+    channel: ticket.channel || "SUPPORT",
+    assignedToAgent: ticket.assignedToAgent ?? false,
+    messages: ticket.messages?.length
+      ? ticket.messages
+      : [
+          {
+            id: `${ticket.id}-MSG-1`,
+            sender: "CUSTOMER",
+            text: ticket.message,
+            createdAt: new Date().toISOString(),
+          },
+        ],
+  }));
 
   return state;
 }

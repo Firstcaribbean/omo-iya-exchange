@@ -16,6 +16,7 @@ export type Product = {
   description: string;
   delivery: string;
   includes: string[];
+  requiresOtp?: boolean;
 };
 
 export const products: Product[] = [
@@ -39,6 +40,7 @@ export const products: Product[] = [
       "Compliant WhatsApp Business onboarding for buyer-owned brands, including number registration guidance, profile setup, catalog basics, and handover support.",
     delivery: "Managed setup",
     includes: ["Business profile setup", "Catalog starter setup", "Number onboarding guidance", "Handover checklist"],
+    requiresOtp: true,
   },
   {
     id: "gh-whatsapp-business-setup",
@@ -59,6 +61,7 @@ export const products: Product[] = [
       "Region-specific WhatsApp Business setup for Ghanaian businesses, with compliance review, brand profile configuration, and buyer-controlled handover.",
     delivery: "Managed setup",
     includes: ["Eligibility check", "Profile configuration", "Security handover", "Support window"],
+    requiresOtp: true,
   },
   {
     id: "uk-business-account-setup",
@@ -80,6 +83,7 @@ export const products: Product[] = [
       "Guided setup for buyer-owned business accounts using buyer-provided details, with compliance checks, recovery setup, and onboarding documentation.",
     delivery: "Guided onboarding",
     includes: ["Requirement review", "Account setup session", "Recovery configuration", "Completion proof"],
+    requiresOtp: true,
   },
   {
     id: "us-brand-page-setup",
@@ -120,6 +124,7 @@ export const products: Product[] = [
       "Provider-aligned assistance for lawful SIM onboarding where the buyer supplies required identity information and completes any mandatory verification.",
     delivery: "Assisted onboarding",
     includes: ["Provider availability check", "Registration guidance", "Verification reminders", "Activation support"],
+    requiresOtp: true,
   },
   {
     id: "global-onboarding-consult",

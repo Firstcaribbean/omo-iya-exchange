@@ -80,7 +80,7 @@ img {
 }
 
 .chatPanel {
-  width: min(380px, calc(100vw - 32px));
+  width: min(420px, calc(100vw - 32px));
   overflow: hidden;
   background: #ffffff;
   border: 1px solid var(--line);
@@ -123,6 +123,48 @@ img {
   line-height: 1;
 }
 
+.chatMessages {
+  display: grid;
+  max-height: 280px;
+  gap: 10px;
+  padding: 14px;
+  overflow-y: auto;
+  background: #f8fafc;
+  border-bottom: 1px solid var(--line);
+}
+
+.chatBubble {
+  width: min(92%, 330px);
+  padding: 10px 12px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.chatBubble[data-sender="CUSTOMER"] {
+  justify-self: end;
+  color: #ffffff;
+  background: var(--blue);
+  border-color: var(--blue);
+}
+
+.chatBubble span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.chatBubble[data-sender="CUSTOMER"] span {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.chatBubble p {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .chatForm {
   display: grid;
   gap: 10px;
@@ -150,9 +192,27 @@ img {
 }
 
 .chatForm textarea {
-  min-height: 92px;
+  min-height: 76px;
   padding-top: 10px;
   resize: vertical;
+}
+
+.chatContactGrid,
+.chatActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.chatActions button {
+  width: 100%;
+}
+
+.chatActions .chatSecondary {
+  color: var(--blue);
+  background: #ffffff;
+  border-color: var(--line);
+  box-shadow: none;
 }
 
 .chatForm button:disabled {
@@ -180,5 +240,10 @@ img {
   .chatPanel,
   .chatLauncher {
     width: 100%;
+  }
+
+  .chatContactGrid,
+  .chatActions {
+    grid-template-columns: 1fr;
   }
 }
