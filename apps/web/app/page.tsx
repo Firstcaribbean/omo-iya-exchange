@@ -312,39 +312,6 @@ export default function Home() {
         </aside>
       </section>
 
-      <section className={styles.workflowGrid} id="dashboard">
-        <article>
-          <span className={styles.panelLabel}>Customer dashboard</span>
-          <h2>Purchases, wallet, support, and notifications.</h2>
-          <p>
-            Buyers will be able to view orders, track fulfillment, open tickets,
-            and manage account security.
-          </p>
-          <div className={styles.miniStats}>
-            <span>Wallet balance</span>
-            <strong>NGN 0</strong>
-          </div>
-          <Link className={styles.panelLink} href="/dashboard">
-            Open dashboard
-          </Link>
-        </article>
-        <article id="admin">
-          <span className={styles.panelLabel}>Admin operations</span>
-          <h2>Services, orders, users, fulfillment, and tickets.</h2>
-          <p>
-            The admin panel will connect to the existing backend services for
-            service catalog management, order approval, and fulfillment.
-          </p>
-          <div className={styles.miniStats}>
-            <span>Today revenue</span>
-            <strong>NGN 0</strong>
-          </div>
-          <Link className={styles.panelLink} href="/admin">
-            Open admin
-          </Link>
-        </article>
-      </section>
-
       <footer className={styles.footer}>
         <div>
           <strong>Omo Iya Exchange</strong>
