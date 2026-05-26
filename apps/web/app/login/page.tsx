@@ -15,6 +15,11 @@ export default function LoginPage() {
     loadState();
   }, []);
 
+  function getSafeNextPath() {
+    const nextPath = new URLSearchParams(window.location.search).get("next");
+    return nextPath?.startsWith("/") && !nextPath.startsWith("//") ? nextPath : "/dashboard";
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (apiConfigured()) {
@@ -29,7 +34,7 @@ export default function LoginPage() {
       if (response.ok && response.data) {
         setAccessToken(response.data.accessToken);
         window.location.href =
-          response.data.user.role === "CUSTOMER" ? "/dashboard" : "/admin";
+          response.data.user.role === "CUSTOMER" ? getSafeNextPath() : "/admin";
         return;
       }
 
@@ -52,7 +57,7 @@ export default function LoginPage() {
 
     state.currentUserId = user.id;
     saveState(state);
-    window.location.href = user.role === "ADMIN" ? "/admin" : "/dashboard";
+    window.location.href = user.role === "ADMIN" ? "/admin" : getSafeNextPath();
   }
 
   return (
@@ -61,7 +66,7 @@ export default function LoginPage() {
         <Link className={styles.brand} href="/">
           <span className={styles.brandMark}>OI</span>
           <div>
-            <strong>Omo Iya Exchange</strong>
+            <strong>{loadState().brand.name}</strong>
             <span>Secure Digital Marketplace</span>
           </div>
         </Link>

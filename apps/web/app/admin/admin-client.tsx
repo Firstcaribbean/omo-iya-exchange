@@ -422,8 +422,7 @@ export function AdminDashboard({ view = "overview" }: { view?: AdminView }) {
               </div>
             </Link>
             <nav className={styles.nav}>
-              <Link href="/marketplace">Marketplace</Link>
-              <Link href="/dashboard">Customer view</Link>
+              <Link href="/login">Admin sign in</Link>
             </nav>
           </header>
           <section className={styles.card}>
@@ -457,10 +456,8 @@ export function AdminDashboard({ view = "overview" }: { view?: AdminView }) {
               ))}
             </nav>
 
-            <p className={styles.sidebarLabel}>Storefront</p>
-            <nav className={styles.adminMenu} aria-label="Storefront links">
-              <Link href="/marketplace">Marketplace</Link>
-              <Link href="/dashboard">Customer view</Link>
+            <p className={styles.sidebarLabel}>Session</p>
+            <nav className={styles.adminMenu} aria-label="Session links">
               <button onClick={logout} type="button">Sign out</button>
             </nav>
           </aside>

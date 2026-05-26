@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { apiConfigured, apiRequest } from "../lib/api";
-import { loadState, saveState, type User } from "../lib/store";
+import { loadState, saveState, type AppState, type User } from "../lib/store";
 import styles from "../portal.module.css";
 
 export default function RegisterPage() {
+  const [state, setState] = useState<AppState | null>(null);
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -15,6 +16,10 @@ export default function RegisterPage() {
     password: "",
   });
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    setState(loadState());
+  }, []);
 
   function update(field: keyof typeof form, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -73,8 +78,8 @@ export default function RegisterPage() {
         <Link className={styles.brand} href="/">
           <span className={styles.brandMark}>OI</span>
           <div>
-            <strong>Omo Iya Exchange</strong>
-            <span>Create account</span>
+            <strong>{state?.brand.name ?? "Omo Iya Exchange"}</strong>
+            <span>{state?.brand.tagline ?? "Create account"}</span>
           </div>
         </Link>
         <nav className={styles.nav}>

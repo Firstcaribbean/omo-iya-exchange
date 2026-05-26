@@ -16,7 +16,7 @@ export default function Home() {
   const featuredServices = useMemo(() => products.slice(0, 3), [products]);
   const brandName = state?.brand.name ?? "Omo Iya Exchange";
   const tagline = state?.brand.tagline ?? "Regional onboarding services";
-  const heroTitle = state?.brand.heroTitle || brandName;
+  const cartCount = Object.values(state?.cart ?? {}).reduce((sum, quantity) => sum + quantity, 0);
   const heroCopy =
     state?.brand.heroCopy ||
     "Order compliant account setup, WhatsApp Business onboarding, SIM registration assistance, and regional launch support from separate, focused pages.";
@@ -42,7 +42,7 @@ export default function Home() {
 
         <Link className={styles.cartPill} href="/checkout" aria-label="Open cart">
           Cart
-          <span>0</span>
+          <span>{cartCount}</span>
         </Link>
       </header>
 
@@ -55,7 +55,7 @@ export default function Home() {
         </div>
         <div className={styles.heroContent}>
           <p className={styles.eyebrow}>Nigeria optimized marketplace</p>
-          <h1>{heroTitle}</h1>
+          <h1>{brandName}</h1>
           <p>{heroCopy}</p>
           <div className={styles.heroActions}>
             <Link className={styles.primaryButton} href="/marketplace">

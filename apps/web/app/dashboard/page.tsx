@@ -97,13 +97,14 @@ export default function DashboardPage() {
   }, []);
 
   const user = state ? currentUser(state) : null;
+  const isCustomer = user?.role === "CUSTOMER";
   const orders = useMemo(
-    () => (state && user ? state.orders.filter((order) => order.userId === user.id) : []),
-    [state, user],
+    () => (state && isCustomer ? state.orders.filter((order) => order.userId === user.id) : []),
+    [isCustomer, state, user],
   );
   const tickets = useMemo(
-    () => (state && user ? state.tickets.filter((item) => item.userId === user.id) : []),
-    [state, user],
+    () => (state && isCustomer ? state.tickets.filter((item) => item.userId === user.id) : []),
+    [isCustomer, state, user],
   );
 
   function logout() {
@@ -129,7 +130,7 @@ export default function DashboardPage() {
 
     const next = loadState();
     const activeUser = currentUser(next);
-    if (!activeUser) {
+    if (!activeUser || activeUser.role !== "CUSTOMER") {
       window.location.href = "/login";
       return;
     }
@@ -163,14 +164,13 @@ export default function DashboardPage() {
         <Link className={styles.brand} href="/">
           <span className={styles.brandMark}>OI</span>
           <div>
-            <strong>Omo Iya Exchange</strong>
+            <strong>{state.brand.name}</strong>
             <span>Customer dashboard</span>
           </div>
         </Link>
         <nav className={styles.nav}>
           <Link href="/marketplace">Marketplace</Link>
           <Link href="/checkout">Checkout</Link>
-          {user?.role === "ADMIN" ? <Link href="/admin">Admin</Link> : null}
           <button className={styles.ghostButton} onClick={logout} type="button">
             Sign out
           </button>
@@ -181,6 +181,15 @@ export default function DashboardPage() {
         <section className={styles.card}>
           <h1 className={styles.headline}>Please sign in.</h1>
           <Link className={styles.button} href="/login">Go to login</Link>
+        </section>
+      ) : !isCustomer ? (
+        <section className={styles.card}>
+          <p className={styles.eyebrow}>Customer access only</p>
+          <h1 className={styles.headline}>This dashboard is for customer accounts.</h1>
+          <p className={styles.lead}>Use a customer account to view purchases, support tickets, and OTP handoff.</p>
+          <div className={styles.inlineActions}>
+            <Link className={styles.button} href="/login">Switch account</Link>
+          </div>
         </section>
       ) : (
         <section className={styles.dashboardGrid}>

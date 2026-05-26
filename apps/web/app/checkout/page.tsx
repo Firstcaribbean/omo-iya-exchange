@@ -26,8 +26,14 @@ export default function CheckoutPage() {
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const user = state ? currentUser(state) : null;
+  const canCheckout = user?.role === "CUSTOMER";
 
   function updateQuantity(productId: string, delta: number) {
+    if (!canCheckout) {
+      window.location.href = "/login?next=/checkout";
+      return;
+    }
+
     const next = loadState();
     const quantity = (next.cart[productId] ?? 0) + delta;
     if (quantity <= 0) {
@@ -48,8 +54,8 @@ export default function CheckoutPage() {
     const next = loadState();
     const activeUser = currentUser(next);
 
-    if (!activeUser) {
-      window.location.href = "/login";
+    if (!activeUser || activeUser.role !== "CUSTOMER") {
+      window.location.href = "/login?next=/checkout";
       return;
     }
 
@@ -131,17 +137,28 @@ export default function CheckoutPage() {
         <Link className={styles.brand} href="/">
           <span className={styles.brandMark}>OI</span>
           <div>
-            <strong>Omo Iya Exchange</strong>
-            <span>Secure checkout</span>
+            <strong>{state?.brand.name ?? "Omo Iya Exchange"}</strong>
+            <span>{state?.brand.tagline ?? "Secure checkout"}</span>
           </div>
         </Link>
         <nav className={styles.nav}>
           <Link href="/marketplace">Marketplace</Link>
-          <Link href="/dashboard">Dashboard</Link>
+          {canCheckout ? <Link href="/dashboard">Dashboard</Link> : null}
           <Link href="/login">{user ? "Switch user" : "Login"}</Link>
         </nav>
       </header>
 
+      {!canCheckout ? (
+        <section className={styles.card}>
+          <p className={styles.eyebrow}>Account required</p>
+          <h1 className={styles.headline}>Create an account or sign in to shop.</h1>
+          <p className={styles.lead}>Customers must be signed in before adding services to cart or paying for an order.</p>
+          <div className={styles.inlineActions}>
+            <Link className={styles.button} href="/register">Create account</Link>
+            <Link className={styles.ghostButton} href="/login?next=/checkout">Sign in</Link>
+          </div>
+        </section>
+      ) : (
       <section className={styles.twoColumn}>
         <div className={styles.card}>
           <p className={styles.eyebrow}>Checkout</p>
@@ -183,6 +200,7 @@ export default function CheckoutPage() {
           </div>
         </aside>
       </section>
+      )}
     </main>
   );
 }

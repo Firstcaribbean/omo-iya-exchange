@@ -131,7 +131,7 @@ export function createDefaultState(): AppState {
       tagline: "Secure Digital Marketplace",
       supportEmail: "support@omoiyaexchange.com",
       whatsapp: "+234 800 000 0000",
-      heroTitle: "Order verified onboarding services by region.",
+      heroTitle: "Omo Iya Exchange",
       heroCopy:
         "Browse compliant setup services with region filters, country availability, NGN pricing, and Paystack-ready checkout.",
     },

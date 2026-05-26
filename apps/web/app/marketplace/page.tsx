@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiConfigured, apiRequest } from "../lib/api";
-import { formatNaira, loadState, saveState, type AppState } from "../lib/store";
+import { currentUser, formatNaira, loadState, saveState, type AppState } from "../lib/store";
 import type { Product } from "../market-data";
 import styles from "../portal.module.css";
 
@@ -95,12 +95,20 @@ export default function MarketplacePage() {
 
   function addToCart(productId: string) {
     const next = loadState();
+    const user = currentUser(next);
+
+    if (!user || user.role !== "CUSTOMER") {
+      window.location.href = `/login?next=/marketplace`;
+      return;
+    }
+
     next.cart[productId] = (next.cart[productId] ?? 0) + 1;
     saveState(next);
     setState(next);
   }
 
   const cartCount = Object.values(state?.cart ?? {}).reduce((sum, quantity) => sum + quantity, 0);
+  const user = state ? currentUser(state) : null;
 
   return (
     <main className={styles.shell}>
@@ -114,8 +122,8 @@ export default function MarketplacePage() {
         </Link>
         <nav className={styles.nav}>
           <Link href="/checkout">Cart ({cartCount})</Link>
-          <Link href="/dashboard">Dashboard</Link>
-          <Link href="/login">Login</Link>
+          {user?.role === "CUSTOMER" ? <Link href="/dashboard">Dashboard</Link> : null}
+          <Link href={user ? "/login" : "/login"}>{user ? "Switch user" : "Login"}</Link>
         </nav>
       </header>
 
@@ -168,7 +176,7 @@ export default function MarketplacePage() {
                   Details
                 </Link>
                 <button className={styles.button} onClick={() => addToCart(product.id)} type="button">
-                  Add to cart
+                  {user?.role === "CUSTOMER" ? "Add to cart" : "Sign in to shop"}
                 </button>
               </div>
             </article>
